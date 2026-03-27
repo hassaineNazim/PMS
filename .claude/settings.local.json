@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"require\\(''./src/app''\\); console.log\\(''App loaded OK''\\)\")",
+      "Bash(node:*)",
+      "Bash(curl -s http://localhost:3000/api/rooms)",
+      "Bash(curl -s http://localhost:3000/api/guests)",
+      "Bash(curl -s http://localhost:3000/api/reservations)",
+      "Bash(curl:*)",
+      "Bash(1 curl:*)",
+      "Bash(psql -U postgres -d pms_hotel -f src/config/schema.sql)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/PostgreSQL/17/bin:/c/Program Files/PostgreSQL/16/bin:/c/Program Files/PostgreSQL/15/bin\")",
+      "Bash(export PATH=\"$PATH:/c/Program Files/PostgreSQL/18/bin\")",
+      "Bash(psql -U postgres -d pms_hotel -c \":*)"
+    ]
+  }
+}

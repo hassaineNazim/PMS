@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice — Hotel PMS</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2a2f47;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .invoice-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 700px;
+      padding: 40px;
+      position: relative;
+    }
+
+    /* Header */
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hotel-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hotel-logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .hotel-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .hotel-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .invoice-meta {
+      text-align: right;
+    }
+
+    .invoice-number {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent2);
+    }
+
+    .invoice-date {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Paid stamp */
+    .paid-stamp {
+      position: absolute;
+      top: 60px;
+      right: 50px;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: rgba(34, 197, 94, 0.2);
+      border: 4px solid rgba(34, 197, 94, 0.2);
+      border-radius: 12px;
+      padding: 4px 20px;
+      transform: rotate(-15deg);
+      letter-spacing: 0.1em;
+      pointer-events: none;
+    }
+
+    /* Guest & Room details */
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .detail-block h3 {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .detail-block p {
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .detail-block .label {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    /* Stay table */
+    .stay-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+    }
+
+    .stay-table thead {
+      background: var(--surface2);
+    }
+
+    .stay-table th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .stay-table td {
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Totals */
+    .totals {
+      margin-left: auto;
+      width: 280px;
+      margin-bottom: 32px;
+    }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 0.88rem;
+    }
+
+    .totals-row.label {
+      color: var(--text-muted);
+    }
+
+    .totals-row.total {
+      border-top: 2px solid var(--border);
+      padding-top: 12px;
+      margin-top: 4px;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .totals-row.total .amount {
+      color: var(--accent2);
+    }
+
+    /* Print button */
+    .print-btn {
+      display: block;
+      margin: 0 auto;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      color: #fff;
+      padding: 10px 32px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .print-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* Loading / Error */
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* ── Print CSS ── */
+    @media print {
+      :root {
+        --bg: #fff;
+        --surface: #fff;
+        --surface2: #f8f8f8;
+        --border: #ddd;
+        --text: #111;
+        --text-muted: #666;
+      }
+
+      body {
+        background: #fff;
+        color: #111;
+        padding: 0;
+      }
+
+      .invoice-container {
+        border: none;
+        box-shadow: none;
+        padding: 20px;
+        max-width: 100%;
+      }
+
+      .print-btn {
+        display: none !important;
+      }
+
+      .paid-stamp {
+        color: rgba(34, 197, 94, 0.35);
+        border-color: rgba(34, 197, 94, 0.35);
+      }
+
+      .hotel-logo {
+        background: #6c63ff;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .stay-table thead {
+        background: #f5f5f5;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .invoice-number {
+        color: #6c63ff;
+      }
+
+      .totals-row.total .amount {
+        color: #111;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="invoice-container" id="invoiceContainer">
+    <div class="loading" id="loadingState">Loading invoice...</div>
+  </div>
+
+  <script>
+    (async function() {
+      var params = new URLSearchParams(window.location.search);
+      var id = params.get('id');
+      if (!id) {
+        document.getElementById('loadingState').textContent = 'No invoice ID provided';
+        return;
+      }
+
+      try {
+        var res = await fetch('/api/invoices/' + id);
+        if (!res.ok) {
+          document.getElementById('loadingState').textContent = 'Invoice not found';
+          return;
+        }
+        var inv = await res.json();
+        renderInvoice(inv);
+      } catch (e) {
+        document.getElementById('loadingState').textContent = 'Failed to load invoice';
+      }
+    })();
+
+    function formatDate(s) {
+      if (!s) return '';
+      return new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function formatCurrency(val) {
+      return '$' + parseFloat(val).toFixed(2);
+    }
+
+    function renderInvoice(inv) {
+      var container = document.getElementById('invoiceContainer');
+      var createdDate = formatDate(inv.created_at);
+      var guestName = inv.first_name + ' ' + inv.last_name;
+      var langMap = { en: 'English', fr: 'French', es: 'Spanish', ar: 'Arabic' };
+      var language = langMap[inv.language] || inv.language || 'English';
+
+      container.innerHTML =
+        (inv.status === 'paid' ? '<div class="paid-stamp">PAID</div>' : '') +
+
+        '<div class="invoice-header">' +
+          '<div class="hotel-info">' +
+            '<div class="hotel-logo">🏨</div>' +
+            '<div>' +
+              '<div class="hotel-name">Hotel PMS</div>' +
+              '<div class="hotel-sub">Property Management System</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="invoice-meta">' +
+            '<div class="invoice-number">Invoice #' + inv.id + '</div>' +
+            '<div class="invoice-date">' + createdDate + '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="details-grid">' +
+          '<div class="detail-block">' +
+            '<h3>Guest Details</h3>' +
+            '<p>' + guestName + '</p>' +
+            (inv.email ? '<p class="label">' + inv.email + '</p>' : '') +
+            '<p class="label">Language: ' + language + '</p>' +
+          '</div>' +
+          '<div class="detail-block">' +
+            '<h3>Room Details</h3>' +
+            '<p>Room ' + inv.room_number + '</p>' +
+            '<p class="label">Type: ' + inv.room_type + '</p>' +
+            '<p class="label">Floor: ' + (inv.room_floor || '—') + '</p>' +
+          '</div>' +
+        '</div>' +
+
+        '<table class="stay-table">' +
+          '<thead><tr><th>Description</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th style="text-align:right">Price/Night</th></tr></thead>' +
+          '<tbody>' +
+            '<tr>' +
+              '<td>Room ' + inv.room_number + ' (' + inv.room_type + ')</td>' +
+              '<td>' + formatDate(inv.check_in) + '</td>' +
+              '<td>' + formatDate(inv.check_out) + '</td>' +
+              '<td style="text-align:center">' + inv.nights + '</td>' +
+              '<td style="text-align:right">' + formatCurrency(inv.price_per_night) + '</td>' +
+            '</tr>' +
+          '</tbody>' +
+        '</table>' +
+
+        '<div class="totals">' +
+          '<div class="totals-row label"><span>Subtotal</span><span>' + formatCurrency(inv.subtotal) + '</span></div>' +
+          '<div class="totals-row label"><span>Tax (' + parseFloat(inv.tax_rate).toFixed(0) + '%)</span><span>' + formatCurrency(inv.tax_amount) + '</span></div>' +
+          '<div class="totals-row total"><span>Total</span><span class="amount">' + formatCurrency(inv.total) + '</span></div>' +
+        '</div>' +
+
+        '<button class="print-btn" onclick="window.print()">🖨️ Print Invoice</button>';
+
+      document.title = 'Invoice #' + inv.id + ' — ' + guestName;
+    }
+  </script>
+</body>
+</html>
