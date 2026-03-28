@@ -5,24 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hotel PMS</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2a2f47;
-      --accent: #6c63ff;
-      --accent2: #a78bfa;
-      --green: #22c55e;
-      --blue: #3b82f6;
-      --red: #ef4444;
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface2: #f8f9fc;
+      --border: #e5e7eb;
+      --navy: #1e2d5a;
+      --navy-hover: #162348;
+      --accent: #3b6cf7;
+      --green: #16a34a;
+      --green-dot: #22c55e;
+      --red: #dc2626;
+      --red-dot: #ef4444;
+      --blue-dot: #3b82f6;
       --orange: #f97316;
-      --gray: #64748b;
-      --text: #e2e8f0;
-      --text-muted: #64748b;
+      --gray: #9ca3af;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --text-light: #9ca3af;
       --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
     }
 
     body {
@@ -55,23 +61,20 @@
     }
 
     .logo-icon {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
+      color: var(--navy);
+      flex-shrink: 0;
     }
 
-    .logo-text { font-size: 1rem; font-weight: 700; color: var(--text); }
-    .logo-sub  { font-size: 0.7rem; color: var(--text-muted); }
+    .logo-text { font-size: 15px; font-weight: 700; color: var(--text); }
+    .logo-sub  { font-size: 11px; color: var(--text-muted); }
 
     .nav { padding: 16px 12px; flex: 1; }
 
     .nav-item {
       display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px;
+      padding: 10px 14px;
       border-radius: 8px;
-      font-size: 0.875rem;
+      font-size: 14px;
       font-weight: 500;
       color: var(--text-muted);
       cursor: pointer;
@@ -79,13 +82,21 @@
       margin-bottom: 2px;
     }
 
-    .nav-item:hover, .nav-item.active {
-      background: var(--surface2);
+    .nav-item:hover {
+      background: #f3f4f6;
       color: var(--text);
     }
 
-    .nav-item.active { color: var(--accent2); }
-    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+    .nav-item.active {
+      background: var(--navy);
+      color: #ffffff;
+    }
+
+    .nav-item.active .nav-icon-lucide {
+      color: #ffffff;
+    }
+
+    .nav-icon-lucide { display: flex; align-items: center; color: inherit; }
 
     .sidebar-footer {
       padding: 16px 20px;
@@ -100,8 +111,8 @@
     .dot {
       width: 8px; height: 8px;
       border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
+      background: var(--green-dot);
+      box-shadow: 0 0 6px var(--green-dot);
       animation: pulse 2s infinite;
     }
 
@@ -123,11 +134,11 @@
       margin-bottom: 28px;
     }
 
-    .page-title { font-size: 1.6rem; font-weight: 700; }
+    .page-title { font-size: 28px; font-weight: 700; color: var(--text); }
     .page-sub   { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
 
     .refresh-btn {
-      background: var(--surface2);
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 8px 16px;
@@ -135,8 +146,10 @@
       font-size: 0.85rem;
       cursor: pointer;
       transition: background 0.15s;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-weight: 500;
     }
-    .refresh-btn:hover { background: var(--border); }
+    .refresh-btn:hover { background: var(--surface2); }
 
     /* ── Stat cards ── */
     .stats-row {
@@ -153,24 +166,25 @@
       padding: 20px;
       position: relative;
       overflow: hidden;
+      box-shadow: var(--shadow);
     }
 
     .stat-card::before {
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0;
-      height: 3px;
+      height: 0px;
     }
 
-    .stat-card.s-total::before  { background: var(--accent); }
-    .stat-card.s-avail::before  { background: var(--green); }
-    .stat-card.s-occ::before    { background: var(--blue); }
-    .stat-card.s-dirty::before  { background: var(--red); }
+    .stat-card.s-total::before  { background: transparent; }
+    .stat-card.s-avail::before  { background: transparent; }
+    .stat-card.s-occ::before    { background: transparent; }
+    .stat-card.s-dirty::before  { background: transparent; }
 
     .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-    .stat-value { font-size: 2rem; font-weight: 700; }
+    .stat-value { font-size: 2rem; font-weight: 700; color: var(--text); }
     .stat-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-    .stat-icon  { position: absolute; top: 16px; right: 16px; font-size: 1.4rem; opacity: 0.3; }
+    .stat-icon  { position: absolute; top: 16px; right: 16px; color: var(--text-light); }
 
     .stat-bar {
       position: absolute;
@@ -187,7 +201,7 @@
     }
     .stat-card.s-total .stat-bar-fill  { background: var(--accent); }
     .stat-card.s-avail .stat-bar-fill  { background: var(--green); }
-    .stat-card.s-occ .stat-bar-fill    { background: var(--blue); }
+    .stat-card.s-occ .stat-bar-fill    { background: var(--blue-dot); }
     .stat-card.s-dirty .stat-bar-fill  { background: var(--red); }
 
     /* ── Trend cards ── */
@@ -204,6 +218,7 @@
       border-radius: var(--radius);
       padding: 16px 18px;
       position: relative;
+      box-shadow: var(--shadow);
     }
 
     .trend-label {
@@ -217,6 +232,7 @@
     .trend-value {
       font-size: 1.4rem;
       font-weight: 700;
+      color: var(--text);
       margin-bottom: 6px;
     }
 
@@ -229,9 +245,9 @@
       font-size: 0.7rem;
       font-weight: 600;
     }
-    .growth-badge.positive { background: rgba(34,197,94,0.15); color: var(--green); }
-    .growth-badge.negative { background: rgba(239,68,68,0.15); color: var(--red); }
-    .growth-badge.neutral  { background: rgba(100,116,139,0.15); color: var(--gray); }
+    .growth-badge.positive { background: #dcfce7; color: #15803d; }
+    .growth-badge.negative { background: #fee2e2; color: #dc2626; }
+    .growth-badge.neutral  { background: #f3f4f6; color: var(--gray); }
 
     /* ── Section ── */
     .section { margin-bottom: 32px; }
@@ -242,7 +258,7 @@
     }
 
     .section-title {
-      font-size: 1rem; font-weight: 600;
+      font-size: 1rem; font-weight: 600; color: var(--text);
       display: flex; align-items: center; gap: 8px;
     }
 
@@ -271,9 +287,10 @@
       transition: transform 0.15s, box-shadow 0.15s;
       position: relative;
       overflow: hidden;
+      box-shadow: var(--shadow);
     }
 
-    .room-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .room-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
 
     .room-card .indicator {
       position: absolute;
@@ -283,44 +300,58 @@
     }
 
     .room-card.available .indicator { background: var(--green); }
-    .room-card.occupied  .indicator { background: var(--blue); }
+    .room-card.occupied  .indicator { background: var(--blue-dot); }
     .room-card.dirty     .indicator { background: var(--red); }
 
     .room-number-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .room-number       { font-size: 1.5rem; font-weight: 800; }
-    .room-type         { font-size: 0.75rem; color: var(--text-muted); text-transform: capitalize; margin-bottom: 10px; }
+    .room-number       { font-size: 15px; font-weight: 700; color: var(--text); }
+    .room-type         { font-size: 13px; color: var(--text-muted); text-transform: capitalize; margin-bottom: 10px; }
 
     .room-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .room-floor { font-size: 0.72rem; color: var(--text-muted); }
+    .room-floor { font-size: 13px; color: var(--text-muted); }
+
+    .room-status-row {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+    }
+    .room-status-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .room-status-dot.available { background: #22c55e; }
+    .room-status-dot.occupied  { background: #3b82f6; }
+    .room-status-dot.dirty     { background: #ef4444; }
+    .room-status-text { font-size: 0.8rem; font-weight: 500; text-transform: capitalize; }
+    .room-status-text.available { color: #16a34a; }
+    .room-status-text.occupied  { color: #2563eb; }
+    .room-status-text.dirty     { color: #dc2626; }
 
     /* ── Badges ── */
     .badge {
       display: inline-flex; align-items: center; gap: 4px;
       padding: 3px 8px;
       border-radius: 20px;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: 600;
       text-transform: capitalize;
     }
 
     .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
 
-    .badge.available   { background: rgba(34,197,94,0.15);  color: var(--green);  }
-    .badge.available::before   { background: var(--green); }
-    .badge.occupied    { background: rgba(59,130,246,0.15); color: var(--blue);   }
-    .badge.occupied::before    { background: var(--blue); }
-    .badge.dirty       { background: rgba(239,68,68,0.15);  color: var(--red);    }
-    .badge.dirty::before       { background: var(--red); }
-    .badge.confirmed   { background: rgba(249,115,22,0.15); color: var(--orange); }
-    .badge.confirmed::before   { background: var(--orange); }
-    .badge.checked_in  { background: rgba(59,130,246,0.15); color: var(--blue);   }
-    .badge.checked_in::before  { background: var(--blue); }
-    .badge.checked_out { background: rgba(100,116,139,0.15);color: var(--gray);   }
-    .badge.checked_out::before { background: var(--gray); }
-    .badge.cancelled   { background: rgba(100,116,139,0.15);color: var(--gray);   }
-    .badge.cancelled::before   { background: var(--gray); }
-    .badge.paid        { background: rgba(34,197,94,0.15);  color: var(--green);  }
-    .badge.paid::before        { background: var(--green); }
+    .badge.available   { background: #dcfce7;  color: #15803d;  }
+    .badge.available::before   { background: #15803d; }
+    .badge.occupied    { background: #dbeafe; color: #1d4ed8;   }
+    .badge.occupied::before    { background: #1d4ed8; }
+    .badge.dirty       { background: #fee2e2;  color: #dc2626;    }
+    .badge.dirty::before       { background: #dc2626; }
+    .badge.confirmed   { background: #dbeafe; color: #1d4ed8; }
+    .badge.confirmed::before   { background: #1d4ed8; }
+    .badge.checked_in  { background: #dcfce7; color: #15803d;   }
+    .badge.checked_in::before  { background: #15803d; }
+    .badge.checked_out { background: #f3f4f6; color: #6b7280;   }
+    .badge.checked_out::before { background: #6b7280; }
+    .badge.cancelled   { background: #fee2e2; color: #dc2626;   }
+    .badge.cancelled::before   { background: #dc2626; }
+    .badge.paid        { background: #dcfce7;  color: #15803d;  }
+    .badge.paid::before        { background: #15803d; }
 
     /* ── Buttons ── */
     .btn {
@@ -337,14 +368,18 @@
       margin-top: 8px;
     }
 
-    .btn:hover   { filter: brightness(1.15); }
+    .btn:hover   { filter: brightness(0.95); }
     .btn:active  { transform: scale(0.97); }
     .btn:disabled{ opacity: 0.4; cursor: not-allowed; }
 
-    .btn-checkin  { background: rgba(34,197,94,0.2);  color: var(--green);  border: 1px solid rgba(34,197,94,0.3); }
-    .btn-checkout { background: rgba(239,68,68,0.2);  color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
-    .btn-clean    { background: rgba(108,99,255,0.2); color: var(--accent2);border: 1px solid rgba(108,99,255,0.3); }
-    .btn-edit     { background: rgba(249,115,22,0.2); color: var(--orange); border: 1px solid rgba(249,115,22,0.3); }
+    .btn-checkin  { background: transparent; color: #16a34a; border: 1px solid #16a34a; }
+    .btn-checkin:hover { background: #f0fdf4; }
+    .btn-checkout { background: transparent; color: #2563eb; border: 1px solid #2563eb; }
+    .btn-checkout:hover { background: #eff6ff; }
+    .btn-clean    { background: #dbeafe;  color: #1d4ed8;  border: 1px solid #bfdbfe; }
+    .btn-edit     { background: var(--surface);  color: var(--text-muted); border: 1px solid var(--border); }
+    .btn-cancel   { background: transparent; color: #dc2626; border: 1px solid #dc2626; }
+    .btn-cancel:hover { background: #fef2f2; }
 
     .btn-sm {
       padding: 4px 10px;
@@ -360,16 +395,17 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
+      box-shadow: var(--shadow);
     }
 
     table { width: 100%; border-collapse: collapse; }
 
-    thead { background: var(--surface2); }
+    thead { background: #f9fafb; }
 
     th {
       padding: 12px 16px;
       text-align: left;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -381,23 +417,24 @@
       padding: 14px 16px;
       font-size: 0.875rem;
       border-top: 1px solid var(--border);
+      color: var(--text);
     }
 
     tbody tr { transition: background 0.1s; }
-    tbody tr:hover { background: var(--surface2); }
+    tbody tr:hover { background: #f9fafb; }
 
     .guest-cell { display: flex; align-items: center; gap: 10px; }
 
     .avatar {
       width: 30px; height: 30px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: var(--navy);
       display: flex; align-items: center; justify-content: center;
       font-size: 0.7rem; font-weight: 700; color: #fff;
       flex-shrink: 0;
     }
 
-    .guest-name  { font-weight: 500; }
+    .guest-name  { font-weight: 500; color: var(--text); }
     .room-chip {
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -405,6 +442,7 @@
       padding: 2px 8px;
       font-size: 0.8rem;
       font-weight: 600;
+      color: var(--text);
     }
 
     .td-action { white-space: nowrap; }
@@ -421,14 +459,15 @@
       border-radius: 10px;
       font-size: 0.85rem;
       font-weight: 500;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
       animation: toastIn 0.25s ease;
       max-width: 320px;
-      backdrop-filter: blur(8px);
+      background: var(--surface);
+      color: var(--text);
     }
 
-    .toast.success { background: rgba(22,101,52,0.95); border: 1px solid var(--green); color: #86efac; }
-    .toast.error   { background: rgba(127,29,29,0.95); border: 1px solid var(--red);   color: #fca5a5; }
+    .toast.success { background: var(--surface); border-left: 4px solid var(--green); color: var(--text); box-shadow: var(--shadow); }
+    .toast.error   { background: var(--surface); border-left: 4px solid var(--red);   color: var(--text); box-shadow: var(--shadow); }
 
     @keyframes toastIn {
       from { transform: translateX(110%); opacity: 0; }
@@ -441,54 +480,53 @@
     .logout-btn {
       display: flex; align-items: center; gap: 8px;
       background: none;
-      border: 1px solid var(--border);
+      border: none;
       color: var(--text-muted);
-      padding: 8px 12px;
-      border-radius: 8px;
+      padding: 8px 0;
       font-size: 0.78rem;
       cursor: pointer;
       transition: all 0.15s;
       width: 100%;
       margin-top: 10px;
     }
-    .logout-btn:hover { background: var(--surface2); color: var(--text); }
+    .logout-btn:hover { color: var(--text); }
 
     /* ── New Reservation button ── */
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: var(--navy);
       border: none;
       color: #fff;
-      padding: 8px 18px;
+      padding: 8px 16px;
       border-radius: 8px;
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.15s;
+      transition: background 0.15s;
       margin-left: 10px;
+      display: inline-flex; align-items: center; gap: 6px;
     }
-    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:hover { background: var(--navy-hover); }
 
     /* ── Modal / Drawer ── */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.25);
       z-index: 500;
       display: none;
       align-items: center;
       justify-content: center;
-      backdrop-filter: blur(4px);
     }
     .modal-overlay.open { display: flex; }
 
     .modal {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 16px;
       width: 100%;
       max-width: 520px;
       max-height: 90vh;
       overflow-y: auto;
       animation: modalIn 0.2s ease;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
     }
 
     @keyframes modalIn {
@@ -502,7 +540,7 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .modal-title { font-size: 1.05rem; font-weight: 700; }
+    .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--text); }
 
     .modal-close {
       background: var(--surface2);
@@ -537,7 +575,7 @@
       background: var(--surface2);
       transition: background 0.2s;
     }
-    .step-dot.active { background: var(--accent); }
+    .step-dot.active { background: var(--navy); }
     .step-dot.done   { background: var(--green); }
 
     .step-label {
@@ -569,18 +607,19 @@
     .modal .form-group select {
       width: 100%;
       padding: 9px 12px;
-      background: var(--surface2);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--text);
       font-size: 0.88rem;
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
 
     .modal .form-group input:focus,
     .modal .form-group select:focus {
-      border-color: var(--accent);
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3px rgba(30,45,90,0.08);
     }
 
     .modal .form-group select option {
@@ -589,7 +628,7 @@
     }
 
     .btn-secondary {
-      background: var(--surface2);
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 9px 18px;
@@ -599,10 +638,10 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    .btn-secondary:hover { background: var(--border); }
+    .btn-secondary:hover { background: var(--surface2); }
 
     .btn-accent {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: var(--navy);
       border: none;
       color: #fff;
       padding: 9px 18px;
@@ -610,9 +649,9 @@
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.15s;
+      transition: background 0.15s;
     }
-    .btn-accent:hover { opacity: 0.9; }
+    .btn-accent:hover { background: var(--navy-hover); }
     .btn-accent:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* ── Audit log action badges ── */
@@ -625,19 +664,12 @@
       text-transform: capitalize;
     }
 
-    .action-badge.check_in         { background: rgba(59,130,246,0.15);  color: var(--blue); }
-    .action-badge.check_out        { background: rgba(100,116,139,0.15); color: var(--gray); }
-    .action-badge.status_change    { background: rgba(168,85,247,0.15);  color: #a855f7; }
-    .action-badge.reservation_created   { background: rgba(34,197,94,0.15);  color: var(--green); }
-    .action-badge.reservation_cancelled { background: rgba(239,68,68,0.15);  color: var(--red); }
-    .action-badge.iptv_notification { background: rgba(249,115,22,0.15); color: var(--orange); }
-
-    /* ── Cancel button ── */
-    .btn-cancel {
-      background: rgba(239,68,68,0.2);
-      color: var(--red);
-      border: 1px solid rgba(239,68,68,0.3);
-    }
+    .action-badge.check_in         { background: #dbeafe;  color: #1d4ed8; }
+    .action-badge.check_out        { background: #f3f4f6; color: #6b7280; }
+    .action-badge.status_change    { background: #f3e8ff;  color: #9333ea; }
+    .action-badge.reservation_created   { background: #dcfce7;  color: #15803d; }
+    .action-badge.reservation_cancelled { background: #fee2e2;  color: #dc2626; }
+    .action-badge.iptv_notification { background: #fff7ed; color: #ea580c; }
 
     .hidden { display: none !important; }
 
@@ -661,6 +693,7 @@
       font-weight: 800;
       letter-spacing: -0.02em;
       margin-bottom: 4px;
+      color: var(--text);
     }
 
     .rooms-page-subtitle {
@@ -685,6 +718,7 @@
       border-radius: 10px;
       padding: 10px 16px;
       min-width: 120px;
+      box-shadow: var(--shadow);
     }
 
     .rooms-summary-pill .pill-dot {
@@ -697,6 +731,7 @@
     .rooms-summary-pill .pill-count {
       font-size: 1.2rem;
       font-weight: 700;
+      color: var(--text);
     }
 
     .rooms-summary-pill .pill-label {
@@ -728,23 +763,23 @@
     }
 
     .rooms-search-input:focus {
-      border-color: var(--accent);
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3px rgba(30,45,90,0.08);
     }
 
     .rooms-search-wrap {
       position: relative;
     }
 
-    .rooms-search-wrap::before {
-      content: '\1F50D';
+    .rooms-search-wrap .search-icon-wrap {
       position: absolute;
       left: 12px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 0.8rem;
       opacity: 0.4;
       pointer-events: none;
       z-index: 1;
+      display: flex; align-items: center;
     }
 
     .rooms-filter-tabs {
@@ -776,7 +811,7 @@
     }
 
     .rooms-filter-tab.active {
-      background: var(--accent);
+      background: var(--navy);
       color: #fff;
     }
 
@@ -809,7 +844,7 @@
     }
 
     .rooms-floor-btn.active {
-      background: var(--accent);
+      background: var(--navy);
       color: #fff;
     }
 
@@ -828,11 +863,12 @@
       position: relative;
       overflow: hidden;
       transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: var(--shadow);
     }
 
     .room-card-v2:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     }
 
     .room-card-v2 .rc-top {
@@ -855,6 +891,7 @@
       font-size: 1.7rem;
       font-weight: 800;
       letter-spacing: -0.02em;
+      color: var(--text);
     }
 
     .room-card-v2 .rc-status-badge {
@@ -870,20 +907,20 @@
     }
 
     .room-card-v2 .rc-status-badge.occupied {
-      background: var(--accent);
-      color: #fff;
+      background: #dbeafe;
+      color: #1d4ed8;
     }
 
     .room-card-v2 .rc-status-badge.available {
-      background: rgba(34,197,94,0.15);
-      color: var(--green);
-      border: 1px solid rgba(34,197,94,0.25);
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
     }
 
     .room-card-v2 .rc-status-badge.dirty {
-      background: rgba(239,68,68,0.15);
-      color: var(--red);
-      border: 1px solid rgba(239,68,68,0.25);
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
     }
 
     .room-card-v2 .rc-info-row {
@@ -898,12 +935,13 @@
     }
 
     .room-card-v2 .rc-info-icon.available { color: var(--green); }
-    .room-card-v2 .rc-info-icon.occupied  { color: var(--blue); }
+    .room-card-v2 .rc-info-icon.occupied  { color: var(--blue-dot); }
     .room-card-v2 .rc-info-icon.dirty     { color: var(--red); }
 
     .room-card-v2 .rc-info-label {
       font-size: 0.82rem;
       font-weight: 700;
+      color: var(--text);
     }
 
     .room-card-v2 .rc-info-sep {
@@ -942,7 +980,7 @@
     }
 
     .room-card-v2 .rc-btn:hover {
-      filter: brightness(1.2);
+      background: var(--border);
     }
 
     .room-card-v2 .rc-btn:active {
@@ -950,20 +988,20 @@
     }
 
     .room-card-v2 .rc-btn-clean {
-      background: rgba(108,99,255,0.2);
-      color: var(--accent2);
-      border-color: rgba(108,99,255,0.3);
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
     }
 
     .room-card-v2 .rc-btn-edit {
-      background: var(--surface2);
+      background: var(--surface);
       color: var(--text-muted);
       border-color: var(--border);
     }
 
     .room-card-v2 .rc-btn-edit:hover {
       color: var(--text);
-      background: var(--border);
+      background: var(--surface2);
     }
 
     /* Room card border-bottom accent by status */
@@ -972,7 +1010,7 @@
     }
 
     .room-card-v2.status-occupied {
-      border-bottom: 3px solid var(--accent);
+      border-bottom: 3px solid var(--blue-dot);
     }
 
     .room-card-v2.status-dirty {
@@ -987,7 +1025,7 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--blue);
+      background: var(--blue-dot);
       animation: pulse 2s infinite;
     }
 
@@ -1022,9 +1060,44 @@
       transition: all 0.15s;
     }
     .guest-toggle button.active {
-      background: var(--accent);
+      background: var(--navy);
       color: #fff;
     }
+
+    /* ── Analytics ── */
+    .analytics-kpi-row {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 20px;
+    }
+    .analytics-kpi-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 20px; display: flex; align-items: flex-start; gap: 16px;
+    }
+    .analytics-kpi-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .analytics-kpi-label {
+      font-size: 0.7rem; color: var(--text-muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;
+    }
+    .analytics-kpi-value {
+      font-size: 1.7rem; font-weight: 700; color: var(--text); line-height: 1.1; margin-bottom: 6px;
+    }
+    .analytics-kpi-sub { font-size: 0.72rem; color: var(--text-muted); }
+    .analytics-trend { font-weight: 600; font-size: 0.72rem; }
+    .analytics-trend.up   { color: #16a34a; }
+    .analytics-trend.down { color: #dc2626; }
+    .analytics-trend.neutral { color: var(--text-muted); }
+    .analytics-chart-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px 24px;
+    }
+    .analytics-chart-header {
+      display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px;
+    }
+    .analytics-chart-title { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+    .analytics-chart-sub   { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
 
     /* ── Calendar ── */
     .cal-toolbar {
@@ -1033,40 +1106,41 @@
     }
     .cal-nav { display: flex; align-items: center; gap: 8px; }
     .cal-nav button {
-      background: var(--surface2); border: 1px solid var(--border);
+      background: var(--surface); border: 1px solid var(--border);
       color: var(--text); padding: 6px 14px; border-radius: 8px;
       cursor: pointer; font-size: 0.85rem; transition: background 0.15s;
     }
-    .cal-nav button:hover { background: var(--border); }
+    .cal-nav button:hover { background: var(--surface2); }
     .cal-current-label {
       font-size: 1rem; font-weight: 700; color: var(--text); min-width: 180px; text-align: center;
     }
     .cal-view-toggle { display: flex; gap: 4px; }
     .cal-view-toggle button {
-      background: var(--surface2); border: 1px solid var(--border);
+      background: var(--surface); border: 1px solid var(--border);
       color: var(--text-muted); padding: 6px 16px; border-radius: 8px;
       cursor: pointer; font-size: 0.8rem; transition: all 0.15s;
     }
     .cal-view-toggle button.active {
-      background: var(--accent); border-color: var(--accent); color: #fff;
+      background: var(--navy); border-color: var(--navy); color: #fff;
     }
     .cal-grid-month {
       display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
       background: var(--border); border-radius: var(--radius); overflow: hidden;
     }
     .cal-day-header {
-      background: var(--surface2); padding: 8px 4px;
+      background: #f9fafb; padding: 8px 4px;
       text-align: center; font-size: 0.72rem; font-weight: 600;
       color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
     }
     .cal-day {
       background: var(--surface); min-height: 90px; padding: 6px;
       cursor: pointer; transition: background 0.15s; position: relative;
+      border: 1px solid var(--border);
     }
     .cal-day:hover { background: var(--surface2); }
     .cal-day.other-month { opacity: 0.35; }
-    .cal-day.today { background: #1e1b38; }
-    .cal-day.today .cal-day-num { color: var(--accent2); font-weight: 700; }
+    .cal-day.today { background: #eef2ff; border-color: var(--navy); }
+    .cal-day.today .cal-day-num { color: var(--navy); font-weight: 700; }
     .cal-day-num {
       font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;
     }
@@ -1075,13 +1149,13 @@
       margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       cursor: pointer; font-weight: 500;
     }
-    .cal-event.confirmed  { background: #1e3a5f; color: var(--blue); border-left: 2px solid var(--blue); }
-    .cal-event.checked_in { background: #14301f; color: var(--green); border-left: 2px solid var(--green); }
-    .cal-event.checked_out { background: #1c2030; color: var(--text-muted); border-left: 2px solid var(--gray); }
-    .cal-event.cancelled  { background: #2a1a1a; color: var(--red); border-left: 2px solid var(--red); }
+    .cal-event.confirmed  { background: #dbeafe; color: #1d4ed8; border-left: 2px solid var(--blue-dot); }
+    .cal-event.checked_in { background: #dcfce7; color: #15803d; border-left: 2px solid var(--green); }
+    .cal-event.checked_out { background: #f3f4f6; color: var(--text-muted); border-left: 2px solid var(--gray); }
+    .cal-event.cancelled  { background: #fee2e2; color: #dc2626; border-left: 2px solid var(--red); }
     .cal-event.checkin-day  { border-left: 3px solid var(--green); }
     .cal-event.checkout-day { border-left: 3px solid var(--orange); }
-    .cal-more { font-size: 0.68rem; color: var(--accent2); margin-top: 2px; cursor: pointer; }
+    .cal-more { font-size: 0.68rem; color: var(--accent); margin-top: 2px; cursor: pointer; }
 
     /* Week grid */
     .cal-grid-week {
@@ -1090,20 +1164,22 @@
     .cal-week-col {
       background: var(--surface); border-radius: 10px;
       border: 1px solid var(--border); overflow: hidden;
+      box-shadow: var(--shadow);
     }
-    .cal-week-col.today { border-color: var(--accent); }
+    .cal-week-col.today { border-color: var(--navy); }
     .cal-week-header {
-      background: var(--surface2); padding: 10px 8px; text-align: center;
+      background: #f9fafb; padding: 10px 8px; text-align: center;
     }
     .cal-week-header .wday { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; }
     .cal-week-header .wnum { font-size: 1.4rem; font-weight: 700; color: var(--text); margin-top: 2px; }
-    .cal-week-header .wnum.today-num { color: var(--accent2); }
+    .cal-week-header .wnum.today-num { color: var(--navy); }
     .cal-week-body { padding: 8px; min-height: 120px; }
 
     /* Detail panel */
     .cal-detail {
       margin-top: 20px; background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 20px; display: none;
+      box-shadow: var(--shadow);
     }
     .cal-detail.visible { display: block; }
     .cal-detail-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
@@ -1119,7 +1195,7 @@
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="logo">
-      <div class="logo-icon">🏨</div>
+      <div class="logo-icon"><i data-lucide="building-2" style="width:24px;height:24px"></i></div>
       <div>
         <div class="logo-text">Hotel PMS</div>
         <div class="logo-sub">Property Management</div>
@@ -1127,14 +1203,14 @@
     </div>
 
     <nav class="nav">
-      <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
-      <div class="nav-item" onclick="navigate('rooms')"><span class="nav-icon">🛏️</span> Rooms</div>
-      <div class="nav-item" onclick="navigate('guests')"><span class="nav-icon">👥</span> Guests</div>
-      <div class="nav-item" onclick="navigate('reservations')"><span class="nav-icon">📋</span> Reservations</div>
-      <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📈</span> Analytics</div>
-      <div class="nav-item" onclick="navigate('invoices')"><span class="nav-icon">🧾</span> Invoices</div>
-      <div class="nav-item" onclick="navigate('auditlog')"><span class="nav-icon">📜</span> Audit Log</div>
-      <div class="nav-item" onclick="navigate('calendar')"><span class="nav-icon">📅</span> Calendar</div>
+      <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon-lucide"><i data-lucide="layout-dashboard" style="width:18px;height:18px"></i></span> Dashboard</div>
+      <div class="nav-item" onclick="navigate('rooms')"><span class="nav-icon-lucide"><i data-lucide="bed" style="width:18px;height:18px"></i></span> Rooms</div>
+      <div class="nav-item" onclick="navigate('guests')"><span class="nav-icon-lucide"><i data-lucide="users" style="width:18px;height:18px"></i></span> Guests</div>
+      <div class="nav-item" onclick="navigate('reservations')"><span class="nav-icon-lucide"><i data-lucide="clipboard-list" style="width:18px;height:18px"></i></span> Reservations</div>
+      <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon-lucide"><i data-lucide="bar-chart-2" style="width:18px;height:18px"></i></span> Analytics</div>
+      <div class="nav-item" onclick="navigate('invoices')"><span class="nav-icon-lucide"><i data-lucide="file-text" style="width:18px;height:18px"></i></span> Invoices</div>
+      <div class="nav-item" onclick="navigate('auditlog')"><span class="nav-icon-lucide"><i data-lucide="scroll-text" style="width:18px;height:18px"></i></span> Audit Log</div>
+      <div class="nav-item" onclick="navigate('calendar')"><span class="nav-icon-lucide"><i data-lucide="calendar-days" style="width:18px;height:18px"></i></span> Calendar</div>
     </nav>
 
     <div class="sidebar-footer">
@@ -1142,7 +1218,7 @@
         <div class="dot"></div>
         <span id="healthStatus">Connecting...</span>
       </div>
-      <button class="logout-btn" onclick="doLogout()">&#x2192; Sign Out</button>
+      <button class="logout-btn" onclick="doLogout()"><i data-lucide="log-out" style="width:14px;height:14px"></i> Sign Out</button>
     </div>
   </aside>
 
@@ -1154,8 +1230,8 @@
         <div class="page-sub" id="lastUpdated">Loading...</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <button class="btn-primary" onclick="openReservationModal()">+ New Reservation</button>
-        <button class="refresh-btn" onclick="refreshAll()">&#x21bb; Refresh</button>
+        <button class="btn-primary" onclick="openReservationModal()"><i data-lucide="plus" style="width:16px;height:16px"></i> New Reservation</button>
+        <button class="refresh-btn" onclick="refreshAll()"><i data-lucide="refresh-cw" style="width:14px;height:14px"></i> Refresh</button>
       </div>
     </div>
 
@@ -1167,27 +1243,27 @@
       <div class="stat-card s-total">
         <div class="stat-label">Total Rooms</div>
         <div class="stat-value" id="statTotal">—</div>
-        <div class="stat-icon">🏨</div>
+        <div class="stat-icon"><i data-lucide="building-2" style="width:28px;height:28px"></i></div>
         <div class="stat-bar"><div class="stat-bar-fill" id="barTotal" style="width:100%"></div></div>
       </div>
       <div class="stat-card s-avail">
         <div class="stat-label">Available</div>
         <div class="stat-value" id="statAvail">—</div>
         <div class="stat-sub" id="statAvailRate"></div>
-        <div class="stat-icon">✅</div>
+        <div class="stat-icon"><i data-lucide="check-circle" style="width:28px;height:28px"></i></div>
         <div class="stat-bar"><div class="stat-bar-fill" id="barAvail" style="width:0%"></div></div>
       </div>
       <div class="stat-card s-occ">
         <div class="stat-label">Occupied</div>
         <div class="stat-value" id="statOcc">—</div>
         <div class="stat-sub" id="statOccRate"></div>
-        <div class="stat-icon">🔑</div>
+        <div class="stat-icon"><i data-lucide="key" style="width:28px;height:28px"></i></div>
         <div class="stat-bar"><div class="stat-bar-fill" id="barOcc" style="width:0%"></div></div>
       </div>
       <div class="stat-card s-dirty">
         <div class="stat-label">Needs Cleaning</div>
         <div class="stat-value" id="statDirty">—</div>
-        <div class="stat-icon">🧹</div>
+        <div class="stat-icon"><i data-lucide="sparkles" style="width:28px;height:28px"></i></div>
         <div class="stat-bar"><div class="stat-bar-fill" id="barDirty" style="width:0%"></div></div>
       </div>
     </div>
@@ -1256,7 +1332,7 @@
             <div class="rooms-page-subtitle" id="roomsPageSubtitle">Overview of all rooms and their current housekeeping status.</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;">
-            <button class="btn-primary" onclick="openAddRoomModal()">+ Add Room</button>
+            <button class="btn-primary" onclick="openAddRoomModal()"><i data-lucide="plus" style="width:16px;height:16px"></i> Add Room</button>
           </div>
         </div>
 
@@ -1277,7 +1353,7 @@
             </div>
           </div>
           <div class="rooms-summary-pill">
-            <div class="pill-dot" style="background:var(--blue)"></div>
+            <div class="pill-dot" style="background:var(--blue-dot)"></div>
             <div>
               <div class="pill-count" id="roomsPillOccupied">--</div>
               <div class="pill-label">Occupied</div>
@@ -1295,6 +1371,7 @@
         <!-- Filter bar -->
         <div class="rooms-filter-bar">
           <div class="rooms-search-wrap">
+            <span class="search-icon-wrap"><i data-lucide="search" style="width:14px;height:14px"></i></span>
             <input type="text" class="rooms-search-input" id="roomsSearchInput" placeholder="Search rooms..." oninput="applyRoomFilters()">
           </div>
 
@@ -1399,61 +1476,106 @@
 
     <!-- Analytics page -->
     <div id="page-analytics" style="display:none">
+
       <!-- Row 1: KPI cards -->
-      <div class="stats-row">
-        <div class="stat-card s-occ">
-          <div class="stat-label">Occupancy Rate</div>
-          <div class="stat-value" id="analyticOccRate">--</div>
-          <div class="stat-icon">📊</div>
+      <div class="analytics-kpi-row">
+        <div class="analytics-kpi-card">
+          <div class="analytics-kpi-icon" style="background:#eef2ff">
+            <i data-lucide="percent" style="width:20px;height:20px;color:#4f46e5"></i>
+          </div>
+          <div>
+            <div class="analytics-kpi-label">Occupancy Rate</div>
+            <div class="analytics-kpi-value" id="analyticOccRate">--</div>
+            <div class="analytics-kpi-sub">Rooms currently occupied</div>
+          </div>
         </div>
-        <div class="stat-card s-total">
-          <div class="stat-label">Total Revenue</div>
-          <div class="stat-value" id="analyticRevenue">--</div>
-          <div class="stat-icon">💰</div>
+        <div class="analytics-kpi-card">
+          <div class="analytics-kpi-icon" style="background:#f0fdf4">
+            <i data-lucide="trending-up" style="width:20px;height:20px;color:#16a34a"></i>
+          </div>
+          <div>
+            <div class="analytics-kpi-label">Revenue this month</div>
+            <div class="analytics-kpi-value" id="analyticRevenue">--</div>
+            <div class="analytics-kpi-sub"><span class="analytics-trend neutral" id="analyticRevGrowth">--</span> vs last month</div>
+          </div>
         </div>
-        <div class="stat-card s-avail">
-          <div class="stat-label">Avg Invoice</div>
-          <div class="stat-value" id="analyticAvgInvoice">--</div>
-          <div class="stat-icon">🧾</div>
+        <div class="analytics-kpi-card">
+          <div class="analytics-kpi-icon" style="background:#fff7ed">
+            <i data-lucide="receipt" style="width:20px;height:20px;color:#ea580c"></i>
+          </div>
+          <div>
+            <div class="analytics-kpi-label">Avg Invoice</div>
+            <div class="analytics-kpi-value" id="analyticAvgInvoice">--</div>
+            <div class="analytics-kpi-sub">Per stay</div>
+          </div>
         </div>
-        <div class="stat-card s-dirty">
-          <div class="stat-label">Total Guests</div>
-          <div class="stat-value" id="analyticGuests">--</div>
-          <div class="stat-icon">👥</div>
-        </div>
-      </div>
-
-      <!-- Row 2: Line charts -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;">
-        <div class="table-wrapper" style="padding:20px;">
-          <div style="font-size:0.85rem;font-weight:600;margin-bottom:12px;">Reservations (14 days)</div>
-          <canvas id="chartReservations"></canvas>
-        </div>
-        <div class="table-wrapper" style="padding:20px;">
-          <div style="font-size:0.85rem;font-weight:600;margin-bottom:12px;">Revenue (14 days)</div>
-          <canvas id="chartRevenue"></canvas>
-        </div>
-      </div>
-
-      <!-- Row 3: Bar + Doughnut -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;">
-        <div class="table-wrapper" style="padding:20px;">
-          <div style="font-size:0.85rem;font-weight:600;margin-bottom:12px;">Occupancy Rate (14 days)</div>
-          <canvas id="chartOccupancy"></canvas>
-        </div>
-        <div class="table-wrapper" style="padding:20px;">
-          <div style="font-size:0.85rem;font-weight:600;margin-bottom:12px;">Room Status</div>
-          <canvas id="chartRoomStatus"></canvas>
+        <div class="analytics-kpi-card">
+          <div class="analytics-kpi-icon" style="background:#fdf4ff">
+            <i data-lucide="users" style="width:20px;height:20px;color:#9333ea"></i>
+          </div>
+          <div>
+            <div class="analytics-kpi-label">Total Guests</div>
+            <div class="analytics-kpi-value" id="analyticGuests">--</div>
+            <div class="analytics-kpi-sub"><span id="analyticGuestWeek">--</span> new this week</div>
+          </div>
         </div>
       </div>
 
-      <!-- Row 4: Doughnut -->
-      <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:28px;max-width:480px;">
-        <div class="table-wrapper" style="padding:20px;">
-          <div style="font-size:0.85rem;font-weight:600;margin-bottom:12px;">Reservation Status</div>
-          <canvas id="chartResStatus"></canvas>
+      <!-- Row 2: Revenue — full width, large -->
+      <div class="analytics-chart-card" style="margin-bottom:16px">
+        <div class="analytics-chart-header">
+          <div>
+            <div class="analytics-chart-title">Revenue</div>
+            <div class="analytics-chart-sub">Last 14 days</div>
+          </div>
+        </div>
+        <canvas id="chartRevenue" style="max-height:200px"></canvas>
+      </div>
+
+      <!-- Row 3: Reservations + Occupancy -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="analytics-chart-card">
+          <div class="analytics-chart-header">
+            <div>
+              <div class="analytics-chart-title">Reservations</div>
+              <div class="analytics-chart-sub">Last 14 days</div>
+            </div>
+          </div>
+          <canvas id="chartReservations" style="max-height:180px"></canvas>
+        </div>
+        <div class="analytics-chart-card">
+          <div class="analytics-chart-header">
+            <div>
+              <div class="analytics-chart-title">Occupancy Rate</div>
+              <div class="analytics-chart-sub">Last 14 days</div>
+            </div>
+          </div>
+          <canvas id="chartOccupancy" style="max-height:180px"></canvas>
         </div>
       </div>
+
+      <!-- Row 4: Doughnuts -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="analytics-chart-card">
+          <div class="analytics-chart-header">
+            <div>
+              <div class="analytics-chart-title">Room Status</div>
+              <div class="analytics-chart-sub">Current distribution</div>
+            </div>
+          </div>
+          <canvas id="chartRoomStatus" style="max-height:220px"></canvas>
+        </div>
+        <div class="analytics-chart-card">
+          <div class="analytics-chart-header">
+            <div>
+              <div class="analytics-chart-title">Reservation Status</div>
+              <div class="analytics-chart-sub">All time</div>
+            </div>
+          </div>
+          <canvas id="chartResStatus" style="max-height:220px"></canvas>
+        </div>
+      </div>
+
     </div>
 
     <!-- Calendar page -->
@@ -1885,7 +2007,7 @@
       var c = document.getElementById('toastContainer');
       var t = document.createElement('div');
       t.className = 'toast ' + (type || '');
-      t.innerHTML = (type === 'success' ? '✓ ' : '✕ ') + msg;
+      t.innerHTML = (type === 'success' ? '&#x2713; ' : '&#x2717; ') + msg;
       c.appendChild(t);
       setTimeout(function() { t.remove(); }, 3500);
     }
@@ -2081,6 +2203,7 @@
       else if (page === 'calendar') loadCalendar();
 
       checkHealth();
+      lucide.createIcons();
     }
 
     function renderReservationRows(list, tbodyId, colspan) {
@@ -2093,10 +2216,10 @@
       list.forEach(function(r) {
         var action = '';
         if (r.status === 'confirmed') {
-          action = '<button class="btn btn-checkin btn-sm" onclick="doCheckIn(' + r.id + ')">&#x2713; Check In</button>' +
-                   ' <button class="btn btn-cancel btn-sm" onclick="doCancelReservation(' + r.id + ')">&#x2717; Cancel</button>';
+          action = '<button class="btn btn-checkin btn-sm" onclick="doCheckIn(' + r.id + ')"><i data-lucide="log-in" style="width:12px;height:12px"></i> Check In</button>' +
+                   ' <button class="btn btn-cancel btn-sm" onclick="doCancelReservation(' + r.id + ')"><i data-lucide="x" style="width:12px;height:12px"></i> Cancel</button>';
         } else if (r.status === 'checked_in') {
-          action = '<button class="btn btn-checkout btn-sm" onclick="doCheckOut(' + r.id + ')">&#x2192; Check Out</button>';
+          action = '<button class="btn btn-checkout btn-sm" onclick="doCheckOut(' + r.id + ')"><i data-lucide="log-out" style="width:12px;height:12px"></i> Check Out</button>';
         } else {
           action = '—';
         }
@@ -2111,6 +2234,7 @@
           '<td class="td-action">' + action + '</td>';
         tbody.appendChild(tr);
       });
+      lucide.createIcons();
     }
 
     // ── Rooms page v2: data, filters, rendering ──
@@ -2122,7 +2246,7 @@
       var grid = document.getElementById(gridId);
       grid.innerHTML = '';
 
-      // For dashboard grid, use old compact style
+      // For dashboard grid, use compact style
       if (gridId !== 'roomsGridFull') {
         rooms.forEach(function(room) {
           var card = document.createElement('div');
@@ -2132,20 +2256,22 @@
             '<div class="room-number-label">Room</div>' +
             '<div class="room-number">' + room.number + '</div>' +
             '<div class="room-type">' + room.type + '</div>' +
-            '<div class="room-meta">' +
-              '<span class="room-floor">Floor ' + (room.floor || '\u2014') + '</span>' +
-              '<span class="badge ' + room.status + '">' + room.status + '</span>' +
+            '<div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Floor ' + (room.floor || '\u2014') + '</div>' +
+            '<div class="room-status-row">' +
+              '<span class="room-status-dot ' + room.status + '"></span>' +
+              '<span class="room-status-text ' + room.status + '">' + room.status + '</span>' +
             '</div>' +
             (room.status === 'dirty'
-              ? '<button class="btn btn-clean" onclick="markAvailable(' + room.id + ')">&#x1F9F9; Mark Clean</button>'
+              ? '<button class="btn btn-clean" onclick="markAvailable(' + room.id + ')"><i data-lucide="sparkles" style="width:12px;height:12px"></i> Mark Clean</button>'
               : '') +
-            '<button class="btn btn-edit" data-room-id="' + room.id + '">&#x270F;&#xFE0F; Edit</button>';
+            '<button class="btn btn-edit" data-room-id="' + room.id + '"><i data-lucide="pencil" style="width:12px;height:12px"></i> Edit</button>';
           var editBtn = card.querySelector('.btn-edit');
           if (editBtn) {
             editBtn.addEventListener('click', function() { openEditRoomModal(room); });
           }
           grid.appendChild(card);
         });
+        lucide.createIcons();
         return;
       }
 
@@ -2221,6 +2347,7 @@
         }
         grid.appendChild(card);
       });
+      lucide.createIcons();
     }
 
     function updateRoomsSummary(rooms) {
@@ -2548,8 +2675,8 @@
 
     function chartDefaults() {
       return {
-        color: '#94a3b8',
-        borderColor: 'rgba(255,255,255,0.05)',
+        color: '#6b7280',
+        borderColor: 'rgba(0,0,0,0.05)',
       };
     }
 
@@ -2573,10 +2700,10 @@
         },
         options: {
           responsive: true,
-          plugins: { legend: { labels: { color: '#94a3b8' } } },
+          plugins: { legend: { labels: { color: '#111827' } } },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            x: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            y: { beginAtZero: true, ticks: { color: '#6b7280' }, grid: { color: 'rgba(0,0,0,0.05)' } }
           }
         }
       });
@@ -2600,10 +2727,10 @@
         },
         options: {
           responsive: true,
-          plugins: { legend: { labels: { color: '#94a3b8' } } },
+          plugins: { legend: { labels: { color: '#111827' } } },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { beginAtZero: true, ticks: { color: '#94a3b8', callback: function(v) { return v + '%'; } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            x: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            y: { beginAtZero: true, ticks: { color: '#6b7280', callback: function(v) { return v + '%'; } }, grid: { color: 'rgba(0,0,0,0.05)' } }
           }
         }
       });
@@ -2619,14 +2746,14 @@
           datasets: [{
             data: data,
             backgroundColor: colors,
-            borderColor: 'var(--surface)',
+            borderColor: '#ffffff',
             borderWidth: 2,
           }]
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 16 } }
+            legend: { position: 'bottom', labels: { color: '#111827', padding: 16 } }
           }
         }
       });
@@ -2644,54 +2771,113 @@
 
         // KPI cards
         document.getElementById('analyticOccRate').textContent = d.rooms.occupancy_rate + '%';
-        document.getElementById('analyticRevenue').textContent = formatCurrency(d.revenue.total);
+        document.getElementById('analyticRevenue').textContent = formatCurrency(d.revenue.this_month);
         document.getElementById('analyticAvgInvoice').textContent = formatCurrency(d.revenue.average_invoice);
         document.getElementById('analyticGuests').textContent = d.guests.total;
+        document.getElementById('analyticGuestWeek').textContent = '+' + d.guests.this_week;
 
-        // Line chart: Reservations by day
-        makeLineChart(
-          'chartReservations',
-          charts.reservations_by_day.map(function(r) { return r.date; }),
-          charts.reservations_by_day.map(function(r) { return r.count; }),
-          'Reservations',
-          '#6c63ff'
-        );
+        // Revenue growth badge
+        var revGrowthEl = document.getElementById('analyticRevGrowth');
+        var revG = d.revenue.month_growth;
+        revGrowthEl.textContent = (revG >= 0 ? '↑ ' : '↓ ') + Math.abs(revG) + '%';
+        revGrowthEl.className = 'analytics-trend ' + (revG > 0 ? 'up' : revG < 0 ? 'down' : 'neutral');
 
-        // Line chart: Revenue by day
-        makeLineChart(
-          'chartRevenue',
-          charts.revenue_by_day.map(function(r) { return r.date; }),
-          charts.revenue_by_day.map(function(r) { return r.total; }),
-          'Revenue ($)',
-          '#22c55e'
-        );
+        // Revenue chart — gradient area, large, premium
+        destroyChart('chartRevenue');
+        (function() {
+          var canvas = document.getElementById('chartRevenue');
+          var ctx = canvas.getContext('2d');
+          var grad = ctx.createLinearGradient(0, 0, 0, 200);
+          grad.addColorStop(0, 'rgba(22,163,74,0.25)');
+          grad.addColorStop(1, 'rgba(22,163,74,0.0)');
+          analyticsCharts['chartRevenue'] = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: charts.revenue_by_day.map(function(r){ return r.date; }),
+              datasets: [{
+                label: 'Revenue',
+                data: charts.revenue_by_day.map(function(r){ return r.total; }),
+                borderColor: '#16a34a',
+                backgroundColor: grad,
+                fill: true, tension: 0.4,
+                pointRadius: 4, pointBackgroundColor: '#16a34a',
+                pointBorderColor: '#fff', pointBorderWidth: 2,
+                borderWidth: 2,
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: function(c){ return '$' + c.parsed.y.toFixed(2); } } }
+              },
+              scales: {
+                x: { ticks: { color: '#6b7280', font: { size: 11 } }, grid: { display: false } },
+                y: { beginAtZero: true, ticks: { color: '#6b7280', callback: function(v){ return '$' + v; } }, grid: { color: 'rgba(0,0,0,0.05)' } }
+              }
+            }
+          });
+        })();
 
-        // Bar chart: Occupancy by day
+        // Reservations chart
+        destroyChart('chartReservations');
+        (function() {
+          var canvas = document.getElementById('chartReservations');
+          var ctx = canvas.getContext('2d');
+          var grad = ctx.createLinearGradient(0, 0, 0, 180);
+          grad.addColorStop(0, 'rgba(30,45,90,0.2)');
+          grad.addColorStop(1, 'rgba(30,45,90,0.0)');
+          analyticsCharts['chartReservations'] = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: charts.reservations_by_day.map(function(r){ return r.date; }),
+              datasets: [{
+                label: 'Reservations',
+                data: charts.reservations_by_day.map(function(r){ return r.count; }),
+                borderColor: '#1e2d5a',
+                backgroundColor: grad,
+                fill: true, tension: 0.4,
+                pointRadius: 3, pointBackgroundColor: '#1e2d5a',
+                pointBorderColor: '#fff', pointBorderWidth: 2,
+                borderWidth: 2,
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { ticks: { color: '#6b7280', font: { size: 11 } }, grid: { display: false } },
+                y: { beginAtZero: true, ticks: { color: '#6b7280', stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } }
+              }
+            }
+          });
+        })();
+
+        // Occupancy bar chart
         makeBarChart(
           'chartOccupancy',
-          charts.occupancy_by_day.map(function(r) { return r.date; }),
-          charts.occupancy_by_day.map(function(r) { return r.rate; }),
-          'Occupancy %',
-          '#3b82f6'
+          charts.occupancy_by_day.map(function(r){ return r.date; }),
+          charts.occupancy_by_day.map(function(r){ return r.rate; }),
+          'Occupancy %', '#3b82f6'
         );
 
-        // Doughnut: Room status
+        // Room status doughnut
         var rs = charts.rooms_by_status;
-        makeDoughnutChart(
-          'chartRoomStatus',
+        makeDoughnutChart('chartRoomStatus',
           ['Available', 'Occupied', 'Dirty'],
           [rs.available, rs.occupied, rs.dirty],
           ['#22c55e', '#3b82f6', '#ef4444']
         );
 
-        // Doughnut: Reservation status
+        // Reservation status doughnut
         var rs2 = charts.reservations_by_status;
-        makeDoughnutChart(
-          'chartResStatus',
+        makeDoughnutChart('chartResStatus',
           ['Confirmed', 'Checked In', 'Checked Out', 'Cancelled'],
           [rs2.confirmed, rs2.checked_in, rs2.checked_out, rs2.cancelled],
-          ['#f97316', '#3b82f6', '#6c63ff', '#ef4444']
+          ['#f97316', '#3b82f6', '#1e2d5a', '#ef4444']
         );
+
+        lucide.createIcons();
       } catch(e) {
         console.error('Failed to load analytics:', e);
       }
@@ -2945,7 +3131,7 @@
           var isCO = calSameDay(calDateFromISO(r.check_out), day);
           var tag  = isCI ? '<span style="color:var(--green);font-weight:600">&#x2192; Check-in</span>' :
                      isCO ? '<span style="color:var(--orange);font-weight:600">&#x2190; Check-out</span>' :
-                            '<span style="color:var(--blue)">Stay</span>';
+                            '<span style="color:var(--blue-dot)">Stay</span>';
           var badgeCls = r.status === 'confirmed' ? 'badge confirmed' : r.status === 'checked_in' ? 'badge checked_in' : r.status === 'checked_out' ? 'badge checked_out' : 'badge cancelled';
           return '<div class="cal-detail-row">' +
             '<div style="min-width:70px">' + tag + '</div>' +
@@ -2957,6 +3143,11 @@
       }
       detail.classList.add('visible');
     }
+
+    // Initialize Lucide icons on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+    });
 
   </script>
 </body>
