@@ -26,7 +26,13 @@ async function checkIn(req, res) {
       return res.status(400).json({ error: `Cannot check in a reservation with status: ${reservation.status}` });
     }
 
-    // 2. Update reservation status
+    // 2. Verify the room is still available
+    const room = await Room.findById(reservation.room_id);
+    if (!room || room.status === 'occupied') {
+      return res.status(409).json({ error: 'Room is already occupied' });
+    }
+
+    // 3. Update reservation status
     await Reservation.updateStatus(reservationId, 'checked_in');
 
     // 3. Update room status to occupied

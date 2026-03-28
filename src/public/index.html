@@ -1025,6 +1025,93 @@
       background: var(--accent);
       color: #fff;
     }
+
+    /* ── Calendar ── */
+    .cal-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+    }
+    .cal-nav { display: flex; align-items: center; gap: 8px; }
+    .cal-nav button {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 6px 14px; border-radius: 8px;
+      cursor: pointer; font-size: 0.85rem; transition: background 0.15s;
+    }
+    .cal-nav button:hover { background: var(--border); }
+    .cal-current-label {
+      font-size: 1rem; font-weight: 700; color: var(--text); min-width: 180px; text-align: center;
+    }
+    .cal-view-toggle { display: flex; gap: 4px; }
+    .cal-view-toggle button {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-muted); padding: 6px 16px; border-radius: 8px;
+      cursor: pointer; font-size: 0.8rem; transition: all 0.15s;
+    }
+    .cal-view-toggle button.active {
+      background: var(--accent); border-color: var(--accent); color: #fff;
+    }
+    .cal-grid-month {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
+      background: var(--border); border-radius: var(--radius); overflow: hidden;
+    }
+    .cal-day-header {
+      background: var(--surface2); padding: 8px 4px;
+      text-align: center; font-size: 0.72rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .cal-day {
+      background: var(--surface); min-height: 90px; padding: 6px;
+      cursor: pointer; transition: background 0.15s; position: relative;
+    }
+    .cal-day:hover { background: var(--surface2); }
+    .cal-day.other-month { opacity: 0.35; }
+    .cal-day.today { background: #1e1b38; }
+    .cal-day.today .cal-day-num { color: var(--accent2); font-weight: 700; }
+    .cal-day-num {
+      font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;
+    }
+    .cal-event {
+      font-size: 0.7rem; padding: 2px 5px; border-radius: 4px;
+      margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      cursor: pointer; font-weight: 500;
+    }
+    .cal-event.confirmed  { background: #1e3a5f; color: var(--blue); border-left: 2px solid var(--blue); }
+    .cal-event.checked_in { background: #14301f; color: var(--green); border-left: 2px solid var(--green); }
+    .cal-event.checked_out { background: #1c2030; color: var(--text-muted); border-left: 2px solid var(--gray); }
+    .cal-event.cancelled  { background: #2a1a1a; color: var(--red); border-left: 2px solid var(--red); }
+    .cal-event.checkin-day  { border-left: 3px solid var(--green); }
+    .cal-event.checkout-day { border-left: 3px solid var(--orange); }
+    .cal-more { font-size: 0.68rem; color: var(--accent2); margin-top: 2px; cursor: pointer; }
+
+    /* Week grid */
+    .cal-grid-week {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
+    }
+    .cal-week-col {
+      background: var(--surface); border-radius: 10px;
+      border: 1px solid var(--border); overflow: hidden;
+    }
+    .cal-week-col.today { border-color: var(--accent); }
+    .cal-week-header {
+      background: var(--surface2); padding: 10px 8px; text-align: center;
+    }
+    .cal-week-header .wday { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; }
+    .cal-week-header .wnum { font-size: 1.4rem; font-weight: 700; color: var(--text); margin-top: 2px; }
+    .cal-week-header .wnum.today-num { color: var(--accent2); }
+    .cal-week-body { padding: 8px; min-height: 120px; }
+
+    /* Detail panel */
+    .cal-detail {
+      margin-top: 20px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; display: none;
+    }
+    .cal-detail.visible { display: block; }
+    .cal-detail-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+    .cal-detail-row {
+      display: flex; align-items: center; gap: 12px; padding: 8px 0;
+      border-bottom: 1px solid var(--border); font-size: 0.82rem;
+    }
+    .cal-detail-row:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -1047,6 +1134,7 @@
       <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📈</span> Analytics</div>
       <div class="nav-item" onclick="navigate('invoices')"><span class="nav-icon">🧾</span> Invoices</div>
       <div class="nav-item" onclick="navigate('auditlog')"><span class="nav-icon">📜</span> Audit Log</div>
+      <div class="nav-item" onclick="navigate('calendar')"><span class="nav-icon">📅</span> Calendar</div>
     </nav>
 
     <div class="sidebar-footer">
@@ -1365,6 +1453,27 @@
           <div style="font-size:0.85rem;font-weight:600;margin-bottom:12px;">Reservation Status</div>
           <canvas id="chartResStatus"></canvas>
         </div>
+      </div>
+    </div>
+
+    <!-- Calendar page -->
+    <div id="page-calendar" style="display:none">
+      <div class="cal-toolbar">
+        <div class="cal-nav">
+          <button onclick="calMove(-1)">&#8592;</button>
+          <div class="cal-current-label" id="calLabel">—</div>
+          <button onclick="calMove(1)">&#8594;</button>
+          <button onclick="calGoToday()" style="margin-left:4px">Today</button>
+        </div>
+        <div class="cal-view-toggle">
+          <button id="calBtnMonth" class="active" onclick="calSetView('month')">Month</button>
+          <button id="calBtnWeek" onclick="calSetView('week')">Week</button>
+        </div>
+      </div>
+      <div id="calContainer"></div>
+      <div class="cal-detail" id="calDetail">
+        <div class="cal-detail-title" id="calDetailTitle"></div>
+        <div id="calDetailBody"></div>
       </div>
     </div>
 
@@ -1939,7 +2048,7 @@
 
     // ── Navigation ──
     var currentPage = 'dashboard';
-    var pageTitles = { dashboard: 'Dashboard', rooms: 'Rooms', guests: 'Guests', reservations: 'Reservations', analytics: 'Analytics', invoices: 'Invoices', auditlog: 'Audit Log' };
+    var pageTitles = { dashboard: 'Dashboard', rooms: 'Rooms', guests: 'Guests', reservations: 'Reservations', analytics: 'Analytics', invoices: 'Invoices', auditlog: 'Audit Log', calendar: 'Calendar' };
 
     function navigate(page) {
       currentPage = page;
@@ -1948,7 +2057,7 @@
         el.classList.remove('active');
       });
       var items = document.querySelectorAll('.nav-item');
-      var pages = ['dashboard', 'rooms', 'guests', 'reservations', 'analytics', 'invoices', 'auditlog'];
+      var pages = ['dashboard', 'rooms', 'guests', 'reservations', 'analytics', 'invoices', 'auditlog', 'calendar'];
       var idx = pages.indexOf(page);
       if (idx >= 0) items[idx].classList.add('active');
 
@@ -1969,6 +2078,7 @@
       else if (page === 'analytics') loadAnalytics();
       else if (page === 'invoices') loadInvoices();
       else if (page === 'auditlog') loadAuditLogs();
+      else if (page === 'calendar') loadCalendar();
 
       checkHealth();
     }
@@ -2363,6 +2473,7 @@
       else if (currentPage === 'analytics') loadAnalytics();
       else if (currentPage === 'invoices') loadInvoices();
       else if (currentPage === 'auditlog') loadAuditLogs();
+      else if (currentPage === 'calendar') loadCalendar();
       checkHealth();
     }
 
@@ -2650,6 +2761,201 @@
         btn.disabled = false;
         btn.textContent = 'Update Room';
       }
+    }
+
+    // ── Calendar ──
+    var calView = 'month';           // 'month' | 'week'
+    var calDate = new Date();        // anchor date
+    var calReservations = [];        // cached reservation list
+
+    var CAL_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    var CAL_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    function calISODate(d) {
+      // Returns 'YYYY-MM-DD' in local time
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+
+    function calSameDay(d1, d2) {
+      return d1.getFullYear()===d2.getFullYear() && d1.getMonth()===d2.getMonth() && d1.getDate()===d2.getDate();
+    }
+
+    function calDateFromISO(s) {
+      // 's' may be '2025-03-15' or '2025-03-15T00:00:00.000Z'
+      var parts = s.substring(0,10).split('-');
+      return new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    }
+
+    /** Returns reservations that overlap [day, day] */
+    function calResForDay(day) {
+      return calReservations.filter(function(r) {
+        var ci = calDateFromISO(r.check_in);
+        var co = calDateFromISO(r.check_out);
+        // A stay spans [check_in, check_out). The last night is check_out - 1 day.
+        var coAdj = new Date(co); coAdj.setDate(coAdj.getDate()-1);
+        return day >= ci && day <= coAdj;
+      });
+    }
+
+    /** Also mark exact check-in / check-out days */
+    function calIsCheckIn(r, day)  { return calSameDay(calDateFromISO(r.check_in),  day); }
+    function calIsCheckOut(r, day) { return calSameDay(calDateFromISO(r.check_out), day); }
+
+    async function loadCalendar() {
+      try {
+        var res = await fetch(API + '/api/reservations');
+        calReservations = await res.json();
+      } catch(e) { calReservations = []; }
+      calRender();
+    }
+
+    function calSetView(v) {
+      calView = v;
+      document.getElementById('calBtnMonth').classList.toggle('active', v==='month');
+      document.getElementById('calBtnWeek').classList.toggle('active',  v==='week');
+      // Hide detail panel on view change
+      document.getElementById('calDetail').classList.remove('visible');
+      calRender();
+    }
+
+    function calMove(dir) {
+      if (calView === 'month') {
+        calDate.setMonth(calDate.getMonth() + dir);
+      } else {
+        calDate.setDate(calDate.getDate() + dir * 7);
+      }
+      document.getElementById('calDetail').classList.remove('visible');
+      calRender();
+    }
+
+    function calGoToday() {
+      calDate = new Date();
+      document.getElementById('calDetail').classList.remove('visible');
+      calRender();
+    }
+
+    function calRender() {
+      if (calView === 'month') calRenderMonth();
+      else calRenderWeek();
+    }
+
+    function calRenderMonth() {
+      var year = calDate.getFullYear(), month = calDate.getMonth();
+      document.getElementById('calLabel').textContent = CAL_MONTHS[month] + ' ' + year;
+
+      var today = new Date();
+      // First day of month, last day of month
+      var first = new Date(year, month, 1);
+      var last  = new Date(year, month+1, 0);
+      // Start grid on Sunday before first
+      var start = new Date(first); start.setDate(1 - first.getDay());
+
+      var html = '<div class="cal-grid-month">';
+      CAL_DAYS.forEach(function(d) { html += '<div class="cal-day-header">' + d + '</div>'; });
+
+      var cur = new Date(start);
+      for (var row = 0; row < 6; row++) {
+        for (var col = 0; col < 7; col++) {
+          var isOther   = cur.getMonth() !== month;
+          var isToday   = calSameDay(cur, today);
+          var cls = 'cal-day' + (isOther ? ' other-month' : '') + (isToday ? ' today' : '');
+          var isoDate   = calISODate(cur);
+          html += '<div class="' + cls + '" onclick="calShowDay(\'' + isoDate + '\')">';
+          html += '<div class="cal-day-num">' + cur.getDate() + '</div>';
+
+          var dayRes = calResForDay(cur);
+          var max = 3;
+          dayRes.slice(0, max).forEach(function(r) {
+            var extra = '';
+            if (calIsCheckIn(r,  cur)) extra = ' checkin-day';
+            else if (calIsCheckOut(r, new Date(calDateFromISO(r.check_out).getTime() - 86400000))) extra = ' checkout-day';
+            var label = (calIsCheckIn(r, cur) ? '&#x2192; ' : '') + 'R' + r.id + ' ' + r.first_name + ' ' + r.last_name[0] + '. Rm ' + r.room_number;
+            html += '<div class="cal-event ' + r.status + extra + '" title="' + r.first_name + ' ' + r.last_name + ' | Rm ' + r.room_number + ' | ' + r.status + '">' + label + '</div>';
+          });
+          if (dayRes.length > max) html += '<div class="cal-more">+' + (dayRes.length - max) + ' more</div>';
+          html += '</div>';
+
+          cur.setDate(cur.getDate() + 1);
+        }
+        // Stop early if we've passed the last day of the month after finishing a full week row
+        if (cur > last) break;
+      }
+      html += '</div>';
+      document.getElementById('calContainer').innerHTML = html;
+    }
+
+    function calRenderWeek() {
+      // Anchor to the Sunday of calDate's week
+      var anchor = new Date(calDate);
+      anchor.setDate(anchor.getDate() - anchor.getDay());
+
+      var weekEnd = new Date(anchor); weekEnd.setDate(anchor.getDate() + 6);
+      document.getElementById('calLabel').textContent =
+        CAL_MONTHS[anchor.getMonth()] + ' ' + anchor.getDate() + ' – ' +
+        CAL_MONTHS[weekEnd.getMonth()] + ' ' + weekEnd.getDate() + ', ' + weekEnd.getFullYear();
+
+      var today = new Date();
+      var html = '<div class="cal-grid-week">';
+      for (var i = 0; i < 7; i++) {
+        var cur = new Date(anchor); cur.setDate(anchor.getDate() + i);
+        var isToday = calSameDay(cur, today);
+        var isoDate = calISODate(cur);
+        html += '<div class="cal-week-col' + (isToday ? ' today' : '') + '">';
+        html += '<div class="cal-week-header" onclick="calShowDay(\'' + isoDate + '\')" style="cursor:pointer">';
+        html += '<div class="wday">' + CAL_DAYS[cur.getDay()] + '</div>';
+        html += '<div class="wnum' + (isToday ? ' today-num' : '') + '">' + cur.getDate() + '</div>';
+        html += '</div>';
+        html += '<div class="cal-week-body">';
+
+        var dayRes = calResForDay(cur);
+        dayRes.forEach(function(r) {
+          var extra = calIsCheckIn(r, cur) ? ' checkin-day' : '';
+          var label = (calIsCheckIn(r, cur) ? '&#x2192; ' : '') + r.first_name + ' ' + r.last_name[0] + '.<br><small style="opacity:.7">Rm ' + r.room_number + '</small>';
+          html += '<div class="cal-event ' + r.status + extra + '" onclick="calShowDay(\'' + isoDate + '\')">' + label + '</div>';
+        });
+        if (!dayRes.length) html += '<div style="font-size:0.72rem;color:var(--text-muted);text-align:center;margin-top:8px">—</div>';
+
+        html += '</div></div>';
+      }
+      html += '</div>';
+      document.getElementById('calContainer').innerHTML = html;
+    }
+
+    function calShowDay(isoDate) {
+      var day = new Date(isoDate + 'T00:00:00');
+      var dayRes = calResForDay(day);
+      // Also include checkouts on this day
+      var checkouts = calReservations.filter(function(r) {
+        return calSameDay(calDateFromISO(r.check_out), day) && !dayRes.find(function(x){ return x.id===r.id; });
+      });
+      var all = dayRes.concat(checkouts);
+
+      var detail = document.getElementById('calDetail');
+      var title  = document.getElementById('calDetailTitle');
+      var body   = document.getElementById('calDetailBody');
+
+      var opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      title.textContent = day.toLocaleDateString(undefined, opts);
+
+      if (!all.length) {
+        body.innerHTML = '<div style="color:var(--text-muted);font-size:0.82rem">No reservations on this day.</div>';
+      } else {
+        body.innerHTML = all.map(function(r) {
+          var isCI = calIsCheckIn(r, day);
+          var isCO = calSameDay(calDateFromISO(r.check_out), day);
+          var tag  = isCI ? '<span style="color:var(--green);font-weight:600">&#x2192; Check-in</span>' :
+                     isCO ? '<span style="color:var(--orange);font-weight:600">&#x2190; Check-out</span>' :
+                            '<span style="color:var(--blue)">Stay</span>';
+          var badgeCls = r.status === 'confirmed' ? 'badge confirmed' : r.status === 'checked_in' ? 'badge checked_in' : r.status === 'checked_out' ? 'badge checked_out' : 'badge cancelled';
+          return '<div class="cal-detail-row">' +
+            '<div style="min-width:70px">' + tag + '</div>' +
+            '<div style="flex:1"><strong>' + r.first_name + ' ' + r.last_name + '</strong><br>' +
+            '<span style="color:var(--text-muted);font-size:0.75rem">Room ' + r.room_number + ' &nbsp;|&nbsp; #' + r.id + ' &nbsp;|&nbsp; ' + formatDate(r.check_in) + ' → ' + formatDate(r.check_out) + '</span></div>' +
+            '<div><span class="badge ' + r.status + '">' + r.status.replace('_',' ') + '</span></div>' +
+            '</div>';
+        }).join('');
+      }
+      detail.classList.add('visible');
     }
 
   </script>

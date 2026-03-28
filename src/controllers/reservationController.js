@@ -26,16 +26,13 @@ async function createReservation(req, res) {
       return res.status(400).json({ error: 'Check-out date must be after check-in date' });
     }
 
-    // Validate room exists and is available
+    // Validate room exists
     const room = await Room.findById(room_id);
     if (!room) {
       return res.status(404).json({ error: 'Room not found' });
     }
-    if (room.status !== 'available') {
-      return res.status(400).json({ error: 'Room is not available' });
-    }
 
-    // Check for conflicting reservations
+    // Check for conflicting reservations (date-based, not room status)
     const conflict = await Reservation.findConflicting(room_id, check_in, check_out);
     if (conflict) {
       return res.status(409).json({ error: 'Conflicting reservation exists for this room and dates' });
