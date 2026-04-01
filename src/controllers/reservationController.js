@@ -96,4 +96,46 @@ async function cancelReservation(req, res) {
   }
 }
 
-module.exports = { getAllReservations, createReservation, cancelReservation };
+async function modifyReservation(req, res) {
+  try {
+    const { id } = req.params;
+    const { guest_id, room_id, check_in, check_out } = req.body;
+
+    if (!guest_id || !room_id || !check_in || !check_out) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (new Date(check_out) <= new Date(check_in)) {
+      return res.status(400).json({ error: 'Check-out date must be after check-in date' });
+    }
+
+    const reservation = await Reservation.findById(id);
+    if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
+    
+    if (reservation.status === 'checked_out' || reservation.status === 'cancelled') {
+        return res.status(400).json({ error: 'Cannot modify a closed reservation' });
+    }
+
+    const conflict = await Reservation.findConflicting(room_id, check_in, check_out, id);
+    if (conflict) {
+      return res.status(409).json({ error: 'Conflicting reservation exists for these dates' });
+    }
+
+    const updated = await Reservation.update(id, { guest_id, room_id, check_in, check_out });
+
+    await AuditLog.create({
+      action: 'reservation_modified',
+      entity_type: 'reservation',
+      entity_id: parseInt(id, 10),
+      details: { guest_id, room_id, check_in, check_out },
+      success: true,
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('Error modifying reservation:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = { getAllReservations, createReservation, cancelReservation, modifyReservation };

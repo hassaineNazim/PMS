@@ -90,36 +90,40 @@ async function checkOut(req, res) {
       success: true,
     });
 
-    // 7. Create invoice
-    const room = await Room.findById(reservation.room_id);
-    const checkInDate = new Date(reservation.check_in);
-    const checkOutDate = new Date(reservation.check_out);
-    const nights = Math.max(1, Math.round((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)));
-    const price_per_night = parseFloat(room.price_per_night) || 0;
+    // 7. Get or create invoice
+    let invoice = await Invoice.findByReservationId(reservation.id);
+    
+    if (!invoice) {
+      const room = await Room.findById(reservation.room_id);
+      const checkInDate = new Date(reservation.check_in);
+      const checkOutDate = new Date(reservation.check_out);
+      const nights = Math.max(1, Math.round((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)));
+      const price_per_night = parseFloat(room.price_per_night) || 0;
 
-    const invoice = await Invoice.create({
-      reservation_id: reservation.id,
-      guest_id: reservation.guest_id,
-      room_id: reservation.room_id,
-      check_in: reservation.check_in,
-      check_out: reservation.check_out,
-      nights,
-      price_per_night,
-      tax_rate: 10.00,
-    });
+      invoice = await Invoice.create({
+        reservation_id: reservation.id,
+        guest_id: reservation.guest_id,
+        room_id: reservation.room_id,
+        check_in: reservation.check_in,
+        check_out: reservation.check_out,
+        nights,
+        price_per_night,
+        tax_rate: 10.00,
+      });
 
-    // 8. Log invoice creation
-    await AuditLog.create({
-      action: 'invoice_created',
-      entity_type: 'invoice',
-      entity_id: invoice.id,
-      details: {
-        guest: `${reservation.first_name} ${reservation.last_name}`,
-        room: reservation.room_number,
-        total: invoice.total,
-      },
-      success: true,
-    });
+      // 8. Log invoice creation
+      await AuditLog.create({
+        action: 'invoice_created_at_checkout',
+        entity_type: 'invoice',
+        entity_id: invoice.id,
+        details: {
+          guest: `${reservation.first_name} ${reservation.last_name}`,
+          room: reservation.room_number,
+          total: invoice.total,
+        },
+        success: true,
+      });
+    }
 
     return res.json({
       message: 'Check-out successful',

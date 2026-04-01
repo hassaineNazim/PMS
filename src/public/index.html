@@ -1407,10 +1407,10 @@
         <div class="table-wrapper">
           <table>
             <thead>
-              <tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Language</th><th>Since</th></tr>
+              <tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Language</th><th>Since</th><th>Action</th></tr>
             </thead>
             <tbody id="guestsBody">
-              <tr><td colspan="6" class="empty">Loading...</td></tr>
+              <tr><td colspan="7" class="empty">Loading...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1691,6 +1691,70 @@
       <div class="modal-footer">
         <button class="btn-secondary hidden" id="btnBack" onclick="modalBack()">Back</button>
         <button class="btn-accent" id="btnNext" onclick="modalNext()">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check-in Modal -->
+  <div class="modal-overlay" id="checkInModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Check-in Reservation <span id="ciResvId" style="color:var(--text-muted);font-size:0.8rem"></span></div>
+        <button class="modal-close" onclick="closeCheckInModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="ciResvIdInput">
+        <p style="margin-bottom:15px; font-size:0.9rem">
+          Lead Guest: <strong id="ciGuestName"></strong>
+        </p>
+        <div class="form-group">
+          <label for="ciAccompanyingGuests">Accompanying Guests / Accompagnateurs (Optional)</label>
+          <input type="text" id="ciAccompanyingGuests" placeholder="e.g. Marie Dupont, Paul Martin">
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Enter names separated by commas.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeCheckInModal()">Cancel</button>
+        <button class="btn-accent" id="btnConfirmCheckIn" onclick="submitCheckIn()">Confirm Check-in</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modify Reservation Modal -->
+  <div class="modal-overlay" id="modifyReservationModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Modify Reservation <span id="modResvId" style="color:var(--text-muted);font-size:0.8rem"></span></div>
+        <button class="modal-close" onclick="closeModifyReservationModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="modResvIdInput">
+        <input type="hidden" id="modResvGuestId">
+        
+        <div class="form-group">
+          <label for="modResvGuestName">Guest</label>
+          <input type="text" id="modResvGuestName" disabled>
+        </div>
+
+        <div class="form-group">
+          <label for="modResRoom">Room *</label>
+          <select id="modResRoom"></select>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="modResCheckIn">Check-in *</label>
+            <input type="date" id="modResCheckIn">
+          </div>
+          <div class="form-group">
+            <label for="modResCheckOut">Check-out *</label>
+            <input type="date" id="modResCheckOut">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModifyReservationModal()">Cancel</button>
+        <button class="btn-accent" id="btnModifyResv" onclick="submitModifyReservation()">Save Changes</button>
       </div>
     </div>
   </div>
@@ -2119,14 +2183,61 @@
       }
     }
 
-    async function doCheckIn(id) {
+    function openCheckInModal(id, name) {
+      document.getElementById('ciResvIdInput').value = id;
+      document.getElementById('ciResvId').textContent = '#' + id;
+      document.getElementById('ciGuestName').textContent = name;
+      document.getElementById('ciAccompanyingGuests').value = '';
+      document.getElementById('checkInModal').classList.add('open');
+    }
+    
+    function closeCheckInModal() {
+      document.getElementById('checkInModal').classList.remove('open');
+    }
+
+    async function submitCheckIn() {
+      var id = document.getElementById('ciResvIdInput').value;
+      var accGuests = document.getElementById('ciAccompanyingGuests').value;
+      
+      var btn = document.getElementById('btnConfirmCheckIn');
+      btn.disabled = true; btn.textContent = 'Processing...';
+
       try {
-        var res  = await fetch(API + '/api/checkin/' + id, { method: 'POST' });
+        var res = await fetch(API + '/api/checkin/' + id, { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accompanying_guests: accGuests }) 
+        });
         var data = await res.json();
-        if (!res.ok) { showToast(data.error || 'Check-in failed', 'error'); return; }
-        showToast(data.reservation.guest + ' checked into Room ' + data.reservation.room, 'success');
+        if (!res.ok) { 
+          showToast(data.error || 'Check-in failed', 'error'); 
+        } else {
+          var msg = data.reservation.guest + ' checked into Room ' + data.reservation.room;
+          if (data.invoice) {
+            msg += ' — Facture #' + data.invoice.id + ' générée';
+            window.open('/invoice.html?id=' + data.invoice.id, '_blank');
+          }
+          showToast(msg, 'success');
+          closeCheckInModal();
+          refreshAll();
+        }
+      } catch(e) { 
+        showToast('Network error', 'error'); 
+      }
+      btn.disabled = false; btn.textContent = 'Confirm Check-in';
+    }
+
+    async function doQuickInvoice(guestId) {
+      try {
+        showToast('Génération de la facture en cours...', 'success');
+        var res  = await fetch(API + '/api/guests/' + guestId + '/quick-invoice', { method: 'POST' });
+        var data = await res.json();
+        if (!res.ok) { showToast(data.error || 'Erreur lors de la création de la facture', 'error'); return; }
+        
+        showToast('Facture générée avec succès !', 'success');
+        window.open('/invoice.html?id=' + data.invoice.id, '_blank');
         refreshAll();
-      } catch(e) { showToast('Network error', 'error'); }
+      } catch(e) { showToast('Erreur réseau', 'error'); }
     }
 
     async function doCheckOut(id) {
@@ -2155,6 +2266,93 @@
         showToast('Room ' + data.number + ' is now available', 'success');
         refreshAll();
       } catch(e) { showToast('Network error', 'error'); }
+    }
+
+    async function markAvailable(roomId) {
+      try {
+        var res  = await fetch(API + '/api/rooms/' + roomId + '/status', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'available' })
+        });
+        var data = await res.json();
+        if (!res.ok) { showToast(data.error || 'Failed to update room', 'error'); return; }
+        showToast('Room ' + data.number + ' is now available', 'success');
+        refreshAll();
+      } catch(e) { showToast('Network error', 'error'); }
+    }
+
+    function openModifyReservationModal(r) {
+      document.getElementById('modResvId').textContent = '#' + r.id;
+      document.getElementById('modResvIdInput').value = r.id;
+      document.getElementById('modResvGuestId').value = r.guest_id;
+      document.getElementById('modResvGuestName').value = r.first_name + ' ' + r.last_name;
+      
+      const inDate = new Date(r.check_in).toISOString().split('T')[0];
+      const outDate = new Date(r.check_out).toISOString().split('T')[0];
+      
+      document.getElementById('modResCheckIn').value = inDate;
+      document.getElementById('modResCheckOut').value = outDate;
+      
+      var select = document.getElementById('modResRoom');
+      select.innerHTML = '';
+      if (allRoomsFull && allRoomsFull.length > 0) {
+        allRoomsFull.forEach(room => {
+          let opt = document.createElement('option');
+          opt.value = room.id;
+          opt.textContent = 'Room ' + room.number + ' (' + room.type + ') - ' + (room.status === 'available' ? 'Available' : 'Unavailable');
+          if (room.id == r.room_id) opt.selected = true;
+          select.appendChild(opt);
+        });
+      } else {
+        fetch(API + '/api/rooms').then(res=>res.json()).then(rooms => {
+          rooms.forEach(room => {
+            let opt = document.createElement('option');
+            opt.value = room.id;
+            opt.textContent = 'Room ' + room.number + ' (' + room.type + ') - ' + (room.status === 'available' ? 'Available' : 'Unavailable');
+            if (room.id == r.room_id) opt.selected = true;
+            select.appendChild(opt);
+          });
+        });
+      }
+      
+      document.getElementById('modifyReservationModal').classList.add('open');
+    }
+
+    function closeModifyReservationModal() {
+      document.getElementById('modifyReservationModal').classList.remove('open');
+    }
+
+    async function submitModifyReservation() {
+      var id = document.getElementById('modResvIdInput').value;
+      var guestId = document.getElementById('modResvGuestId').value;
+      var roomId = document.getElementById('modResRoom').value;
+      var checkIn = document.getElementById('modResCheckIn').value;
+      var checkOut = document.getElementById('modResCheckOut').value;
+      
+      var btn = document.getElementById('btnModifyResv');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        var res = await fetch(API + '/api/reservations/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guest_id: guestId, room_id: roomId, check_in: checkIn, check_out: checkOut })
+        });
+        var data = await res.json();
+        if(!res.ok) {
+           showToast(data.error || 'Failed to modify reservation', 'error');
+           btn.disabled = false; btn.textContent = 'Save Changes';
+           return;
+        }
+        showToast('Reservation updated successfully', 'success');
+        closeModifyReservationModal();
+        refreshAll();
+      } catch(e) {
+        showToast('Network error', 'error');
+      }
+      btn.disabled = false; btn.textContent = 'Save Changes';
     }
 
     async function checkHealth() {
@@ -2215,18 +2413,27 @@
       }
       list.forEach(function(r) {
         var action = '';
+        var btnModify = ' <button class="btn btn-edit btn-sm" onclick=\'openModifyReservationModal(' + JSON.stringify(r) + ')\'><i data-lucide="edit" style="width:12px;height:12px"></i> Modify</button>';
+        
         if (r.status === 'confirmed') {
-          action = '<button class="btn btn-checkin btn-sm" onclick="doCheckIn(' + r.id + ')"><i data-lucide="log-in" style="width:12px;height:12px"></i> Check In</button>' +
+          var guestNameEscaped = (r.first_name + ' ' + r.last_name).replace(/'/g, "\\'");
+          action = '<button class="btn btn-checkin btn-sm" onclick="openCheckInModal(' + r.id + ', \'' + guestNameEscaped + '\')"><i data-lucide="log-in" style="width:12px;height:12px"></i> Check In</button>' +
+                   btnModify +
                    ' <button class="btn btn-cancel btn-sm" onclick="doCancelReservation(' + r.id + ')"><i data-lucide="x" style="width:12px;height:12px"></i> Cancel</button>';
         } else if (r.status === 'checked_in') {
-          action = '<button class="btn btn-checkout btn-sm" onclick="doCheckOut(' + r.id + ')"><i data-lucide="log-out" style="width:12px;height:12px"></i> Check Out</button>';
+          action = '<button class="btn btn-checkout btn-sm" onclick="doCheckOut(' + r.id + ')"><i data-lucide="log-out" style="width:12px;height:12px"></i> Check Out</button>' + btnModify;
         } else {
           action = '—';
         }
+        var guestDisplay = r.first_name + ' ' + r.last_name;
+        if (r.accompanying_guests) {
+          guestDisplay += '<br><small style="color:var(--text-muted);font-size:0.7rem;font-weight:normal">Acc.: ' + r.accompanying_guests + '</small>';
+        }
+
         var tr = document.createElement('tr');
         tr.innerHTML =
           '<td style="color:var(--text-muted);font-size:0.8rem">#' + r.id + '</td>' +
-          '<td><div class="guest-cell"><div class="avatar">' + initials(r.first_name, r.last_name) + '</div><span class="guest-name">' + r.first_name + ' ' + r.last_name + '</span></div></td>' +
+          '<td><div class="guest-cell"><div class="avatar">' + initials(r.first_name, r.last_name) + '</div><span class="guest-name">' + guestDisplay + '</span></div></td>' +
           '<td><span class="room-chip">' + r.room_number + '</span></td>' +
           '<td style="color:var(--text-muted)">' + formatDate(r.check_in) + '</td>' +
           '<td style="color:var(--text-muted)">' + formatDate(r.check_out) + '</td>' +
@@ -2446,7 +2653,7 @@
         var tbody = document.getElementById('guestsBody');
         tbody.innerHTML = '';
         if (!guests.length) {
-          tbody.innerHTML = '<tr><td colspan="6" class="empty">No guests</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" class="empty">No guests</td></tr>';
           return;
         }
         guests.forEach(function(g) {
@@ -2457,11 +2664,13 @@
             '<td style="color:var(--text-muted)">' + (g.email || '—') + '</td>' +
             '<td style="color:var(--text-muted)">' + (g.phone || '—') + '</td>' +
             '<td><span class="badge confirmed">' + (g.language || '—') + '</span></td>' +
-            '<td style="color:var(--text-muted)">' + formatDate(g.created_at) + '</td>';
+            '<td style="color:var(--text-muted)">' + formatDate(g.created_at) + '</td>' +
+            '<td class="td-action"><button class="btn btn-primary btn-sm" style="margin:0;padding:6px 12px;display:inline-flex;align-items:center;gap:4px;" onclick="doQuickInvoice(' + g.id + ')"><i data-lucide="file-text" style="width:14px;height:14px"></i> Facturer</button></td>';
           tbody.appendChild(tr);
+          lucide.createIcons();
         });
       } catch(e) {
-        document.getElementById('guestsBody').innerHTML = '<tr><td colspan="6" class="empty">Failed to load</td></tr>';
+        document.getElementById('guestsBody').innerHTML = '<tr><td colspan="7" class="empty">Failed to load</td></tr>';
       }
     }
 

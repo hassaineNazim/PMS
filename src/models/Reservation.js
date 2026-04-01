@@ -32,15 +32,29 @@ const Reservation = {
     return rows[0];
   },
 
-  async findConflicting(room_id, check_in, check_out) {
-    const { rows } = await pool.query(`
+  async setAccompanyingGuests(id, text) {
+    const { rows } = await pool.query(
+      'UPDATE reservations SET accompanying_guests = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [text, id]
+    );
+    return rows[0];
+  },
+
+  async findConflicting(room_id, check_in, check_out, exclude_id = null) {
+    let query = `
       SELECT * FROM reservations
       WHERE room_id = $1
         AND status IN ('confirmed', 'checked_in')
         AND check_in < $3
         AND check_out > $2
-      LIMIT 1
-    `, [room_id, check_in, check_out]);
+    `;
+    const params = [room_id, check_in, check_out];
+    if (exclude_id) {
+      params.push(exclude_id);
+      query += ` AND id != $4`;
+    }
+    query += ` LIMIT 1`;
+    const { rows } = await pool.query(query, params);
     return rows[0];
   },
 
@@ -49,6 +63,16 @@ const Reservation = {
       `INSERT INTO reservations (guest_id, room_id, check_in, check_out)
        VALUES ($1, $2, $3, $4) RETURNING *`,
       [guest_id, room_id, check_in, check_out]
+    );
+    return rows[0];
+  },
+
+  async update(id, { guest_id, room_id, check_in, check_out }) {
+    const { rows } = await pool.query(
+      `UPDATE reservations
+       SET guest_id = $1, room_id = $2, check_in = $3, check_out = $4, updated_at = NOW()
+       WHERE id = $5 RETURNING *`,
+      [guest_id, room_id, check_in, check_out, id]
     );
     return rows[0];
   },

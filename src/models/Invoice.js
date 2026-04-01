@@ -39,6 +39,19 @@ const Invoice = {
     `, [id]);
     return rows[0];
   },
+
+  async findByReservationId(reservation_id) {
+    const { rows } = await pool.query(`
+      SELECT i.*,
+             g.first_name, g.last_name, g.email, g.language,
+             rm.number AS room_number, rm.type AS room_type, rm.floor AS room_floor
+      FROM invoices i
+      JOIN guests g ON i.guest_id = g.id
+      JOIN rooms rm ON i.room_id = rm.id
+      WHERE i.reservation_id = $1
+    `, [reservation_id]);
+    return rows[0];
+  },
 };
 
 module.exports = Invoice;

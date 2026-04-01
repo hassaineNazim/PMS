@@ -1,6 +1,7 @@
 const Reservation = require('../models/Reservation');
 const Room = require('../models/Room');
 const AuditLog = require('../models/AuditLog');
+const Invoice = require('../models/Invoice');
 const procentricService = require('../integrations/procentric/procentricService');
 
 /**
@@ -12,6 +13,7 @@ const procentricService = require('../integrations/procentric/procentricService'
  */
 async function checkIn(req, res) {
   const { reservationId } = req.params;
+  const { accompanying_guests } = req.body || {};
 
   try {
     // 1. Fetch the reservation with guest + room info
@@ -32,10 +34,13 @@ async function checkIn(req, res) {
       return res.status(409).json({ error: 'Room is already occupied' });
     }
 
-    // 3. Update reservation status
+    // 3. Update reservation status and guests
     await Reservation.updateStatus(reservationId, 'checked_in');
+    if (accompanying_guests) {
+      await Reservation.setAccompanyingGuests(reservationId, accompanying_guests);
+    }
 
-    // 3. Update room status to occupied
+    // 4. Update room status to occupied
     await Room.updateStatus(reservation.room_id, 'occupied');
 
     // 4. Notify LG Pro:Centric IPTV middleware
@@ -76,14 +81,47 @@ async function checkIn(req, res) {
       success: true,
     });
 
+    // 6. Create invoice on check-in
+    const checkInDate = new Date(reservation.check_in);
+    const checkOutDate = new Date(reservation.check_out);
+    const nights = Math.max(1, Math.round((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)));
+    const price_per_night = parseFloat(room.price_per_night) || 0;
+
+    const invoice = await Invoice.create({
+      reservation_id: reservation.id,
+      guest_id: reservation.guest_id,
+      room_id: reservation.room_id,
+      check_in: reservation.check_in,
+      check_out: reservation.check_out,
+      nights,
+      price_per_night,
+      tax_rate: 10.00,
+    });
+
+    await AuditLog.create({
+      action: 'invoice_created_at_checkin',
+      entity_type: 'invoice',
+      entity_id: invoice.id,
+      details: {
+        guest: `${reservation.first_name} ${reservation.last_name}`,
+        room: reservation.room_number,
+        total: invoice.total,
+      },
+      success: true,
+    });
+
     return res.json({
-      message: 'Check-in successful',
+      message: 'Check-in successful and invoice created',
       reservation: {
         id: reservation.id,
         guest: `${reservation.first_name} ${reservation.last_name}`,
         room: reservation.room_number,
         check_out: reservation.check_out,
         status: 'checked_in',
+      },
+      invoice: {
+        id: invoice.id,
+        total: invoice.total,
       },
       iptv_notified: iptvResult !== null,
     });
