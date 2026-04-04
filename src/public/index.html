@@ -2513,7 +2513,7 @@
           infoDetail = 'Floor ' + (room.floor || '\u2014');
         }
 
-        var priceStr = room.price_per_night ? '$' + parseFloat(room.price_per_night).toFixed(0) + '/night' : '';
+        var priceStr = room.price_per_night ? parseFloat(room.price_per_night).toFixed(0) + ' DA/night' : '';
 
         // Build action buttons
         var actionsHtml = '';
@@ -2761,7 +2761,7 @@
     }
 
     function formatCurrency(val) {
-      return '$' + parseFloat(val).toFixed(2);
+      return parseFloat(val).toFixed(2) + ' DA';
     }
 
     async function loadInvoices() {
@@ -3018,11 +3018,11 @@
               responsive: true,
               plugins: {
                 legend: { display: false },
-                tooltip: { callbacks: { label: function(c){ return '$' + c.parsed.y.toFixed(2); } } }
+                tooltip: { callbacks: { label: function(c){ return c.parsed.y.toFixed(2) + ' DA'; } } }
               },
               scales: {
                 x: { ticks: { color: '#6b7280', font: { size: 11 } }, grid: { display: false } },
-                y: { beginAtZero: true, ticks: { color: '#6b7280', callback: function(v){ return '$' + v; } }, grid: { color: 'rgba(0,0,0,0.05)' } }
+                y: { beginAtZero: true, ticks: { color: '#6b7280', callback: function(v){ return v + ' DA'; } }, grid: { color: 'rgba(0,0,0,0.05)' } }
               }
             }
           });
