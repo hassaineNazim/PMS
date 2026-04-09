@@ -13,6 +13,7 @@ const iptvRoutes = require('./routes/iptv');
 const auditLogRoutes = require('./routes/auditLogs');
 const invoiceRoutes = require('./routes/invoices');
 const statsRoutes = require('./routes/stats');
+const staffRoutes = require('./routes/staff');
 
 const app = express();
 
@@ -50,5 +51,6 @@ app.use('/api/iptv', iptvRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/staff', staffRoutes);
 
 module.exports = app;

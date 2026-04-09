@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personnel — Hotel PMS</title>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface2: #f8f9fc;
+      --border: #e5e7eb;
+      --navy: #1e2d5a;
+      --navy-hover: #162348;
+      --accent: #3b6cf7;
+      --green: #16a34a;
+      --green-dot: #22c55e;
+      --red: #dc2626;
+      --red-dot: #ef4444;
+      --blue-dot: #3b82f6;
+      --orange: #f97316;
+      --gray: #9ca3af;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --text-light: #9ca3af;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    :root.dark {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #334155;
+      --border: #475569;
+      --navy: #3b82f6;
+      --navy-hover: #60a5fa;
+      --accent: #3b82f6;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-light: #64748b;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 220px;
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-icon { color: var(--navy); flex-shrink: 0; }
+    .logo-text { font-size: 15px; font-weight: 700; color: var(--text); }
+    .logo-sub  { font-size: 11px; color: var(--text-muted); }
+
+    .nav { padding: 16px 12px; flex: 1; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+      text-decoration: none;
+    }
+
+    .nav-item:hover { background: #f3f4f6; color: var(--text); }
+    :root.dark .nav-item:hover { background: var(--surface2); }
+
+    .nav-item.active {
+      background: var(--navy);
+      color: #ffffff;
+    }
+
+    .nav-item.active .nav-icon-lucide { color: #ffffff; }
+    .nav-icon-lucide { display: flex; align-items: center; color: inherit; }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .status-dot {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.75rem; color: var(--text-muted);
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green-dot);
+      box-shadow: 0 0 6px var(--green-dot);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .logout-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 0;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .logout-btn:hover { color: var(--text); }
+
+    /* ── Main content ── */
+    .main {
+      margin-left: 220px;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .page-title { font-size: 28px; font-weight: 700; color: var(--text); }
+    .page-sub   { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: var(--navy);
+      border: none;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary:hover { background: var(--navy-hover); }
+
+    .refresh-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-weight: 500;
+    }
+    .refresh-btn:hover { background: var(--surface2); }
+
+    /* ── Stat cards ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .stat-value { font-size: 2rem; font-weight: 700; color: var(--text); }
+    .stat-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+    .stat-icon  { position: absolute; top: 16px; right: 16px; color: var(--text-light); }
+
+    .stat-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 0 0 var(--radius) var(--radius);
+      overflow: hidden;
+    }
+    .stat-bar-fill {
+      height: 100%;
+      border-radius: 0 0 var(--radius) var(--radius);
+      transition: width 0.6s ease;
+    }
+
+    /* ── Filters ── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      color: var(--text);
+      outline: none;
+      transition: border 0.15s;
+    }
+    .filter-bar select:focus,
+    .filter-bar input:focus {
+      border-color: var(--accent);
+    }
+
+    /* ── Table ── */
+    .table-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead { background: #f9fafb; }
+    :root.dark thead { background: var(--surface2); }
+
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 14px 16px;
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    tbody tr { transition: background 0.1s; }
+    tbody tr:hover { background: #f9fafb; }
+    :root.dark tbody tr:hover { background: var(--surface2); }
+
+    .staff-cell { display: flex; align-items: center; gap: 10px; }
+
+    .avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--navy);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+
+    .badge.active       { background: #dcfce7;  color: #15803d;  }
+    .badge.active::before       { background: #15803d; }
+    .badge.inactive     { background: #f3f4f6; color: #6b7280;   }
+    .badge.inactive::before     { background: #6b7280; }
+    .badge.on_leave     { background: #fef3c7; color: #d97706;   }
+    .badge.on_leave::before     { background: #d97706; }
+
+    .role-badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+      background: #dbeafe; color: #1d4ed8;
+    }
+    .role-badge.manager      { background: #ede9fe; color: #7c3aed; }
+    .role-badge.receptionist { background: #dbeafe; color: #1d4ed8; }
+    .role-badge.housekeeper  { background: #dcfce7; color: #15803d; }
+    .role-badge.maintenance  { background: #fef3c7; color: #d97706; }
+    .role-badge.security     { background: #fee2e2; color: #dc2626; }
+    .role-badge.other        { background: #f3f4f6; color: #6b7280; }
+
+    /* ── Action buttons ── */
+    .action-btns { display: flex; gap: 6px; }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 4px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .btn-edit {
+      background: var(--surface2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-edit:hover { color: var(--text); background: var(--border); }
+
+    .btn-schedule {
+      background: #dbeafe;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .btn-schedule:hover { background: #bfdbfe; }
+
+    .btn-delete {
+      background: transparent;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+    .btn-delete:hover { background: #fef2f2; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: modalIn 0.2s ease;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+
+    @keyframes modalIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+
+    .modal-close {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      border: none;
+      background: var(--surface2);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+
+    .modal-body { padding: 24px; }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .modal .form-group { margin-bottom: 14px; }
+
+    .modal .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .modal .form-group input,
+    .modal .form-group select,
+    .modal .form-group textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border 0.15s;
+    }
+
+    .modal .form-group input:focus,
+    .modal .form-group select:focus,
+    .modal .form-group textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .modal .form-group select option {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn-save {
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-save:hover { background: var(--navy-hover); }
+
+    .btn-cancel-modal {
+      background: var(--surface2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-cancel-modal:hover { color: var(--text); }
+
+    /* ── Schedule section ── */
+    .schedule-section {
+      margin-top: 32px;
+    }
+
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 1rem; font-weight: 600; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .section-title .count {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1px 8px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .schedule-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .schedule-info {
+      display: flex; align-items: center; gap: 16px;
+    }
+
+    .schedule-date {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 100px;
+    }
+
+    .schedule-time {
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .schedule-notes {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .empty-state i { margin-bottom: 12px; display: block; color: var(--text-light); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 0.85rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .toast.show { display: flex; animation: toastIn 0.3s ease; }
+
+    @keyframes toastIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error   { border-left: 3px solid var(--red); }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i data-lucide="building-2" style="width:24px;height:24px"></i></div>
+      <div>
+        <div class="logo-text">Hotel PMS</div>
+        <div class="logo-sub">Property Management</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a class="nav-item" href="/index.html"><span class="nav-icon-lucide"><i data-lucide="layout-dashboard" style="width:18px;height:18px"></i></span> Dashboard</a>
+      <a class="nav-item" href="/index.html#rooms"><span class="nav-icon-lucide"><i data-lucide="bed" style="width:18px;height:18px"></i></span> Rooms</a>
+      <a class="nav-item" href="/index.html#guests"><span class="nav-icon-lucide"><i data-lucide="users" style="width:18px;height:18px"></i></span> Guests</a>
+      <a class="nav-item" href="/index.html#reservations"><span class="nav-icon-lucide"><i data-lucide="clipboard-list" style="width:18px;height:18px"></i></span> Reservations</a>
+      <a class="nav-item" href="/index.html#analytics"><span class="nav-icon-lucide"><i data-lucide="bar-chart-2" style="width:18px;height:18px"></i></span> Analytics</a>
+      <a class="nav-item" href="/index.html#invoices"><span class="nav-icon-lucide"><i data-lucide="file-text" style="width:18px;height:18px"></i></span> Invoices</a>
+      <a class="nav-item" href="/index.html#auditlog"><span class="nav-icon-lucide"><i data-lucide="scroll-text" style="width:18px;height:18px"></i></span> Audit Log</a>
+      <a class="nav-item" href="/index.html#calendar"><span class="nav-icon-lucide"><i data-lucide="calendar-days" style="width:18px;height:18px"></i></span> Calendar</a>
+      <a class="nav-item active" href="/staff.html"><span class="nav-icon-lucide"><i data-lucide="user-cog" style="width:18px;height:18px"></i></span> Personnel</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-dot">
+        <div class="dot"></div>
+        <span id="healthStatus">Connecting...</span>
+      </div>
+      <button class="logout-btn" id="darkModeBtn" onclick="toggleDarkMode()"><i data-lucide="moon" style="width:14px;height:14px"></i> <span>Dark Mode</span></button>
+      <button class="logout-btn" onclick="doLogout()"><i data-lucide="log-out" style="width:14px;height:14px"></i> Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Personnel</div>
+        <div class="page-sub" id="lastUpdated">Staff management and scheduling</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-primary" onclick="openAddModal()"><i data-lucide="plus" style="width:16px;height:16px"></i> Add Staff</button>
+        <button class="refresh-btn" onclick="loadAll()"><i data-lucide="refresh-cw" style="width:14px;height:14px"></i> Refresh</button>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="stat-label">Total Staff</div>
+        <div class="stat-value" id="statTotal">-</div>
+        <div class="stat-icon"><i data-lucide="users" style="width:20px;height:20px"></i></div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:100%;background:var(--accent)"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active</div>
+        <div class="stat-value" id="statActive">-</div>
+        <div class="stat-sub" id="statActiveSub"></div>
+        <div class="stat-icon"><i data-lucide="user-check" style="width:20px;height:20px"></i></div>
+        <div class="stat-bar"><div class="stat-bar-fill" id="barActive" style="width:0%;background:var(--green)"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">On Leave</div>
+        <div class="stat-value" id="statLeave">-</div>
+        <div class="stat-sub" id="statLeaveSub"></div>
+        <div class="stat-icon"><i data-lucide="calendar-off" style="width:20px;height:20px"></i></div>
+        <div class="stat-bar"><div class="stat-bar-fill" id="barLeave" style="width:0%;background:var(--orange)"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Inactive</div>
+        <div class="stat-value" id="statInactive">-</div>
+        <div class="stat-sub" id="statInactiveSub"></div>
+        <div class="stat-icon"><i data-lucide="user-x" style="width:20px;height:20px"></i></div>
+        <div class="stat-bar"><div class="stat-bar-fill" id="barInactive" style="width:0%;background:var(--red)"></div></div>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <select id="filterRole" onchange="loadStaff()">
+        <option value="">All Roles</option>
+        <option value="manager">Manager</option>
+        <option value="receptionist">Receptionist</option>
+        <option value="housekeeper">Housekeeper</option>
+        <option value="maintenance">Maintenance</option>
+        <option value="security">Security</option>
+        <option value="other">Other</option>
+      </select>
+      <select id="filterStatus" onchange="loadStaff()">
+        <option value="">All Statuses</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+        <option value="on_leave">On Leave</option>
+      </select>
+      <input type="text" id="filterSearch" placeholder="Search by name..." oninput="loadStaff()" style="min-width:200px;">
+    </div>
+
+    <!-- Staff table -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="staffTableBody">
+          <tr><td colspan="7" class="empty-state">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Schedule section -->
+    <div class="schedule-section" id="scheduleSection" style="display:none;">
+      <div class="section-header">
+        <div class="section-title">
+          <i data-lucide="calendar" style="width:18px;height:18px"></i>
+          Schedule for <span id="scheduleStaffName"></span>
+          <span class="count" id="scheduleCount">0</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="date" id="schedFrom" onchange="loadScheduleForStaff()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:0.85rem;color:var(--text);">
+          <input type="date" id="schedTo" onchange="loadScheduleForStaff()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:0.85rem;color:var(--text);">
+          <button class="btn-primary" onclick="openScheduleModal()" style="font-size:0.8rem;padding:6px 14px;"><i data-lucide="plus" style="width:14px;height:14px"></i> Add Shift</button>
+          <button class="btn-sm btn-edit" onclick="closeSchedule()" style="padding:6px 12px;"><i data-lucide="x" style="width:14px;height:14px"></i> Close</button>
+        </div>
+      </div>
+      <div id="scheduleList"></div>
+    </div>
+  </main>
+
+  <!-- Add/Edit Staff Modal -->
+  <div class="modal-overlay" id="staffModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Add Staff Member</div>
+        <button class="modal-close" onclick="closeModal()"><i data-lucide="x" style="width:16px;height:16px"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name *</label>
+            <input type="text" id="formFirstName" placeholder="First name">
+          </div>
+          <div class="form-group">
+            <label>Last Name *</label>
+            <input type="text" id="formLastName" placeholder="Last name">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="formEmail" placeholder="email@hotel.com">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="formPhone" placeholder="+33 6 00 00 00 00">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Role *</label>
+            <select id="formRole">
+              <option value="manager">Manager</option>
+              <option value="receptionist">Receptionist</option>
+              <option value="housekeeper">Housekeeper</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="security">Security</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Department</label>
+            <input type="text" id="formDepartment" placeholder="Department">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Hire Date</label>
+            <input type="date" id="formHireDate">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="formStatus">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="on_leave">On Leave</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel-modal" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="saveStaff()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Modal -->
+  <div class="modal-overlay" id="scheduleModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header">
+        <div class="modal-title">Add Shift</div>
+        <button class="modal-close" onclick="closeScheduleModal()"><i data-lucide="x" style="width:16px;height:16px"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" id="schedDate">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Shift Start *</label>
+            <input type="time" id="schedStart">
+          </div>
+          <div class="form-group">
+            <label>Shift End *</label>
+            <input type="time" id="schedEnd">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="schedNotes" rows="2" placeholder="Optional notes..." style="resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel-modal" onclick="closeScheduleModal()">Cancel</button>
+        <button class="btn-save" onclick="saveSchedule()">Add Shift</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    var API = '';
+    var currentScheduleStaffId = null;
+
+    // ── Dark mode ──
+    function toggleDarkMode() {
+      var isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateDarkModeBtn(isDark);
+    }
+
+    function updateDarkModeBtn(isDark) {
+      var btn = document.getElementById('darkModeBtn');
+      if (!btn) return;
+      btn.innerHTML = '<i data-lucide="' + (isDark ? 'sun' : 'moon') + '" style="width:14px;height:14px"></i> <span>' + (isDark ? 'Light Mode' : 'Dark Mode') + '</span>';
+      lucide.createIcons();
+    }
+
+    function doLogout() {
+      fetch(API + '/api/auth/logout', { method: 'POST' }).catch(function() {});
+      window.location.href = '/login.html';
+    }
+
+    // ── Toast ──
+    function showToast(message, type) {
+      var toast = document.getElementById('toast');
+      toast.className = 'toast show ' + (type || 'success');
+      toast.textContent = message;
+      setTimeout(function() { toast.className = 'toast'; }, 3000);
+    }
+
+    // ── Health check ──
+    async function checkHealth() {
+      try {
+        var res = await fetch(API + '/api/health');
+        if (res.ok) {
+          document.getElementById('healthStatus').textContent = 'System Online';
+        }
+      } catch (e) {
+        document.getElementById('healthStatus').textContent = 'Offline';
+      }
+    }
+
+    // ── Load everything ──
+    function loadAll() {
+      loadStats();
+      loadStaff();
+      checkHealth();
+    }
+
+    // ── Stats ──
+    async function loadStats() {
+      try {
+        var res = await fetch(API + '/api/staff/stats');
+        var data = await res.json();
+
+        document.getElementById('statTotal').textContent = data.total;
+        document.getElementById('statActive').textContent = data.active;
+        document.getElementById('statLeave').textContent = data.on_leave;
+        document.getElementById('statInactive').textContent = data.inactive;
+
+        var pct = data.total > 0 ? Math.round((data.active / data.total) * 100) : 0;
+        document.getElementById('statActiveSub').textContent = pct + '% of staff';
+        document.getElementById('barActive').style.width = pct + '%';
+
+        var pctL = data.total > 0 ? Math.round((data.on_leave / data.total) * 100) : 0;
+        document.getElementById('statLeaveSub').textContent = pctL + '% of staff';
+        document.getElementById('barLeave').style.width = pctL + '%';
+
+        var pctI = data.total > 0 ? Math.round((data.inactive / data.total) * 100) : 0;
+        document.getElementById('statInactiveSub').textContent = pctI + '% of staff';
+        document.getElementById('barInactive').style.width = pctI + '%';
+      } catch (err) {
+        console.error('Error loading stats:', err);
+      }
+    }
+
+    // ── Staff list ──
+    async function loadStaff() {
+      try {
+        var params = new URLSearchParams();
+        var role = document.getElementById('filterRole').value;
+        var status = document.getElementById('filterStatus').value;
+        var search = document.getElementById('filterSearch').value.trim();
+        if (role) params.append('role', role);
+        if (status) params.append('status', status);
+        if (search) params.append('search', search);
+
+        var url = API + '/api/staff' + (params.toString() ? '?' + params.toString() : '');
+        var res = await fetch(url);
+        var staff = await res.json();
+
+        var tbody = document.getElementById('staffTableBody');
+
+        if (!staff.length) {
+          tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i data-lucide="user-x" style="width:32px;height:32px"></i><br>No staff members found</td></tr>';
+          lucide.createIcons();
+          return;
+        }
+
+        var html = '';
+        for (var i = 0; i < staff.length; i++) {
+          var s = staff[i];
+          var initials = (s.first_name[0] + s.last_name[0]).toUpperCase();
+          var statusClass = s.status;
+          var statusLabel = s.status === 'on_leave' ? 'On Leave' : s.status.charAt(0).toUpperCase() + s.status.slice(1);
+
+          html += '<tr>';
+          html += '<td><div class="staff-cell"><div class="avatar">' + initials + '</div><div><div style="font-weight:600;">' + escHtml(s.first_name + ' ' + s.last_name) + '</div><div style="font-size:0.75rem;color:var(--text-muted);">Since ' + formatDate(s.hire_date) + '</div></div></div></td>';
+          html += '<td><span class="role-badge ' + s.role + '">' + s.role + '</span></td>';
+          html += '<td>' + escHtml(s.department || '-') + '</td>';
+          html += '<td>' + escHtml(s.phone || '-') + '</td>';
+          html += '<td>' + escHtml(s.email || '-') + '</td>';
+          html += '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>';
+          html += '<td><div class="action-btns">';
+          html += '<button class="btn-sm btn-edit" onclick="openEditModal(' + s.id + ')"><i data-lucide="pencil" style="width:13px;height:13px"></i></button>';
+          html += '<button class="btn-sm btn-schedule" onclick="openSchedulePanel(' + s.id + ', \'' + escHtml(s.first_name + ' ' + s.last_name) + '\')"><i data-lucide="calendar" style="width:13px;height:13px"></i></button>';
+          html += '<button class="btn-sm btn-delete" onclick="deleteStaffMember(' + s.id + ', \'' + escHtml(s.first_name + ' ' + s.last_name) + '\')"><i data-lucide="trash-2" style="width:13px;height:13px"></i></button>';
+          html += '</div></td>';
+          html += '</tr>';
+        }
+
+        tbody.innerHTML = html;
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error loading staff:', err);
+        document.getElementById('staffTableBody').innerHTML = '<tr><td colspan="7" class="empty-state" style="color:var(--red);">Error loading staff list</td></tr>';
+      }
+    }
+
+    // ── Open add modal ──
+    function openAddModal() {
+      document.getElementById('editId').value = '';
+      document.getElementById('modalTitle').textContent = 'Add Staff Member';
+      document.getElementById('formFirstName').value = '';
+      document.getElementById('formLastName').value = '';
+      document.getElementById('formEmail').value = '';
+      document.getElementById('formPhone').value = '';
+      document.getElementById('formRole').value = 'receptionist';
+      document.getElementById('formDepartment').value = '';
+      document.getElementById('formHireDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('formStatus').value = 'active';
+      document.getElementById('staffModal').classList.add('open');
+    }
+
+    // ── Open edit modal ──
+    async function openEditModal(id) {
+      try {
+        var res = await fetch(API + '/api/staff/' + id);
+        var s = await res.json();
+        if (s.error) { showToast(s.error, 'error'); return; }
+
+        document.getElementById('editId').value = s.id;
+        document.getElementById('modalTitle').textContent = 'Edit Staff Member';
+        document.getElementById('formFirstName').value = s.first_name;
+        document.getElementById('formLastName').value = s.last_name;
+        document.getElementById('formEmail').value = s.email || '';
+        document.getElementById('formPhone').value = s.phone || '';
+        document.getElementById('formRole').value = s.role;
+        document.getElementById('formDepartment').value = s.department || '';
+        document.getElementById('formHireDate').value = s.hire_date ? s.hire_date.split('T')[0] : '';
+        document.getElementById('formStatus').value = s.status;
+        document.getElementById('staffModal').classList.add('open');
+      } catch (err) {
+        showToast('Error loading staff member', 'error');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('staffModal').classList.remove('open');
+    }
+
+    // ── Save (create or update) ──
+    async function saveStaff() {
+      var id = document.getElementById('editId').value;
+      var body = {
+        first_name: document.getElementById('formFirstName').value.trim(),
+        last_name: document.getElementById('formLastName').value.trim(),
+        email: document.getElementById('formEmail').value.trim() || null,
+        phone: document.getElementById('formPhone').value.trim() || null,
+        role: document.getElementById('formRole').value,
+        department: document.getElementById('formDepartment').value.trim() || null,
+        hire_date: document.getElementById('formHireDate').value || null,
+        status: document.getElementById('formStatus').value
+      };
+
+      if (!body.first_name || !body.last_name) {
+        showToast('First name and last name are required', 'error');
+        return;
+      }
+
+      try {
+        var url = API + '/api/staff' + (id ? '/' + id : '');
+        var method = id ? 'PUT' : 'POST';
+
+        var res = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        var data = await res.json();
+
+        if (!res.ok) {
+          showToast(data.error || 'Error saving staff member', 'error');
+          return;
+        }
+
+        closeModal();
+        showToast(id ? 'Staff member updated' : 'Staff member added', 'success');
+        loadAll();
+      } catch (err) {
+        showToast('Network error', 'error');
+      }
+    }
+
+    // ── Delete ──
+    async function deleteStaffMember(id, name) {
+      if (!confirm('Delete ' + name + '? This will also delete all their schedules.')) return;
+
+      try {
+        var res = await fetch(API + '/api/staff/' + id, { method: 'DELETE' });
+        var data = await res.json();
+
+        if (!res.ok) {
+          showToast(data.error || 'Error deleting staff member', 'error');
+          return;
+        }
+
+        showToast(name + ' has been removed', 'success');
+        if (currentScheduleStaffId === id) closeSchedule();
+        loadAll();
+      } catch (err) {
+        showToast('Network error', 'error');
+      }
+    }
+
+    // ── Schedule panel ──
+    function openSchedulePanel(staffId, name) {
+      currentScheduleStaffId = staffId;
+      document.getElementById('scheduleStaffName').textContent = name;
+      document.getElementById('scheduleSection').style.display = '';
+
+      // Default date range: this week
+      var today = new Date();
+      var dayOfWeek = today.getDay();
+      var monday = new Date(today);
+      monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+      var sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+
+      document.getElementById('schedFrom').value = monday.toISOString().split('T')[0];
+      document.getElementById('schedTo').value = sunday.toISOString().split('T')[0];
+
+      loadScheduleForStaff();
+      document.getElementById('scheduleSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function closeSchedule() {
+      currentScheduleStaffId = null;
+      document.getElementById('scheduleSection').style.display = 'none';
+    }
+
+    async function loadScheduleForStaff() {
+      if (!currentScheduleStaffId) return;
+
+      try {
+        var from = document.getElementById('schedFrom').value;
+        var to = document.getElementById('schedTo').value;
+        var params = new URLSearchParams();
+        if (from) params.append('from', from);
+        if (to) params.append('to', to);
+
+        var url = API + '/api/staff/' + currentScheduleStaffId + '/schedules' + (params.toString() ? '?' + params.toString() : '');
+        var res = await fetch(url);
+        var schedules = await res.json();
+
+        document.getElementById('scheduleCount').textContent = schedules.length;
+
+        var container = document.getElementById('scheduleList');
+        if (!schedules.length) {
+          container.innerHTML = '<div class="empty-state"><i data-lucide="calendar-x" style="width:32px;height:32px"></i><br>No shifts scheduled for this period</div>';
+          lucide.createIcons();
+          return;
+        }
+
+        var html = '';
+        for (var i = 0; i < schedules.length; i++) {
+          var sc = schedules[i];
+          html += '<div class="schedule-card">';
+          html += '<div class="schedule-info">';
+          html += '<div class="schedule-date">' + formatDate(sc.date) + '</div>';
+          html += '<div class="schedule-time">' + formatTime(sc.shift_start) + ' - ' + formatTime(sc.shift_end) + '</div>';
+          if (sc.notes) html += '<div class="schedule-notes">' + escHtml(sc.notes) + '</div>';
+          html += '</div>';
+          html += '<button class="btn-sm btn-delete" onclick="deleteShift(' + sc.id + ')"><i data-lucide="trash-2" style="width:13px;height:13px"></i></button>';
+          html += '</div>';
+        }
+
+        container.innerHTML = html;
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error loading schedules:', err);
+      }
+    }
+
+    // ── Schedule modal ──
+    function openScheduleModal() {
+      document.getElementById('schedDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('schedStart').value = '08:00';
+      document.getElementById('schedEnd').value = '16:00';
+      document.getElementById('schedNotes').value = '';
+      document.getElementById('scheduleModal').classList.add('open');
+    }
+
+    function closeScheduleModal() {
+      document.getElementById('scheduleModal').classList.remove('open');
+    }
+
+    async function saveSchedule() {
+      var body = {
+        date: document.getElementById('schedDate').value,
+        shift_start: document.getElementById('schedStart').value,
+        shift_end: document.getElementById('schedEnd').value,
+        notes: document.getElementById('schedNotes').value.trim() || null
+      };
+
+      if (!body.date || !body.shift_start || !body.shift_end) {
+        showToast('Date, start and end times are required', 'error');
+        return;
+      }
+
+      try {
+        var res = await fetch(API + '/api/staff/' + currentScheduleStaffId + '/schedules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        var data = await res.json();
+        if (!res.ok) {
+          showToast(data.error || 'Error adding shift', 'error');
+          return;
+        }
+
+        closeScheduleModal();
+        showToast('Shift added', 'success');
+        loadScheduleForStaff();
+      } catch (err) {
+        showToast('Network error', 'error');
+      }
+    }
+
+    async function deleteShift(scheduleId) {
+      if (!confirm('Delete this shift?')) return;
+
+      try {
+        var res = await fetch(API + '/api/staff/schedules/' + scheduleId, { method: 'DELETE' });
+        var data = await res.json();
+
+        if (!res.ok) {
+          showToast(data.error || 'Error deleting shift', 'error');
+          return;
+        }
+
+        showToast('Shift removed', 'success');
+        loadScheduleForStaff();
+      } catch (err) {
+        showToast('Network error', 'error');
+      }
+    }
+
+    // ── Helpers ──
+    function escHtml(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function formatDate(d) {
+      if (!d) return '-';
+      var date = new Date(d);
+      return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function formatTime(t) {
+      if (!t) return '-';
+      // t is "HH:MM:SS" or "HH:MM"
+      var parts = t.split(':');
+      return parts[0] + ':' + parts[1];
+    }
+
+    // ── Init ──
+    document.addEventListener('DOMContentLoaded', function() {
+      if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        updateDarkModeBtn(true);
+      }
+      lucide.createIcons();
+      loadAll();
+    });
+  </script>
+</body>
+</html>
