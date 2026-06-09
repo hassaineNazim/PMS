@@ -1,0 +1,11 @@
+/src/src/Pms.Domain/bin/Debug/net9.0/Pms.Domain.deps.json
+/src/src/Pms.Domain/bin/Debug/net9.0/Pms.Domain.dll
+/src/src/Pms.Domain/bin/Debug/net9.0/Pms.Domain.pdb
+/src/src/Pms.Domain/obj/Debug/net9.0/Pms.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/src/src/Pms.Domain/obj/Debug/net9.0/Pms.Domain.AssemblyInfoInputs.cache
+/src/src/Pms.Domain/obj/Debug/net9.0/Pms.Domain.AssemblyInfo.cs
+/src/src/Pms.Domain/obj/Debug/net9.0/Pms.Domain.csproj.CoreCompileInputs.cache
+/src/src/Pms.Domain/obj/Debug/net9.0/Pms.Domain.dll
+/src/src/Pms.Domain/obj/Debug/net9.0/refint/Pms.Domain.dll
+/src/src/Pms.Domain/obj/Debug/net9.0/Pms.Domain.pdb
+/src/src/Pms.Domain/obj/Debug/net9.0/ref/Pms.Domain.dll

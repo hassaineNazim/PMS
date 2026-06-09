@@ -1,0 +1,15 @@
+/src/src/Pms.Application/bin/Debug/net9.0/Pms.Application.deps.json
+/src/src/Pms.Application/bin/Debug/net9.0/Pms.Application.dll
+/src/src/Pms.Application/bin/Debug/net9.0/Pms.Application.pdb
+/src/src/Pms.Application/bin/Debug/net9.0/Pms.Domain.dll
+/src/src/Pms.Application/bin/Debug/net9.0/Pms.Domain.pdb
+/src/src/Pms.Application/obj/Debug/net9.0/Pms.Application.csproj.AssemblyReference.cache
+/src/src/Pms.Application/obj/Debug/net9.0/Pms.Application.GeneratedMSBuildEditorConfig.editorconfig
+/src/src/Pms.Application/obj/Debug/net9.0/Pms.Application.AssemblyInfoInputs.cache
+/src/src/Pms.Application/obj/Debug/net9.0/Pms.Application.AssemblyInfo.cs
+/src/src/Pms.Application/obj/Debug/net9.0/Pms.Application.csproj.CoreCompileInputs.cache
+/src/src/Pms.Application/obj/Debug/net9.0/Pms.Appl.ACFE9705.Up2Date
+/src/src/Pms.Application/obj/Debug/net9.0/Pms.Application.dll
+/src/src/Pms.Application/obj/Debug/net9.0/refint/Pms.Application.dll
+/src/src/Pms.Application/obj/Debug/net9.0/Pms.Application.pdb
+/src/src/Pms.Application/obj/Debug/net9.0/ref/Pms.Application.dll

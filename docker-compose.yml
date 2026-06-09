@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: pms-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-pms}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pms-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-pms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pms-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=${POSTGRES_DB:-pms};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      Jwt__Secret: ${JWT_SECRET:-CHANGE_ME_super_secret_key_at_least_32_chars_long!!}
+      Display__Provider: ${DISPLAY_PROVIDER:-none}
+      Display__BaseUrl: ${DISPLAY_BASEURL:-http://localhost:8080/procentric/api}
+      Swagger__Enabled: "true"
+      Cors__Origins__0: "http://localhost:8090"
+    ports:
+      - "5080:8080"
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pms-web
+    depends_on:
+      - api
+    ports:
+      - "8090:80"
+
+volumes:
+  pms-db-data:

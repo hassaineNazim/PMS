@@ -1,156 +1,128 @@
-# PMS - Property Management System
+# PMS — Property Management System (multi-établissements)
 
-MVP d'un PMS hôtelier avec intégration IPTV LG Pro:Centric.
+Système de gestion hôtelière **commercial, robuste et multi-tenant**, conçu pour être revendu à plusieurs établissements. Intègre l'affichage en chambre LG (Pro:Centric / SuperSign) derrière une abstraction matériel-agnostique.
 
-## Stack technique
+> Le prototype Node.js d'origine reste dans `src/` (legacy). La nouvelle plateforme vit dans `backend/` (.NET) et `frontend/` (React).
 
-- **Backend** : Node.js + Express
-- **Base de données** : PostgreSQL
-- **IPTV** : LG Pro:Centric (JSON/REST + XML/HTNG)
+## Stack
 
-## Installation
+| Couche | Technologie |
+|--------|-------------|
+| Backend | **.NET 9 / ASP.NET Core**, architecture en couches (Domain / Application / Infrastructure / API) |
+| ORM | **EF Core 9** + **Npgsql**, migrations versionnées |
+| Base de données | **PostgreSQL 16** |
+| Frontend | **React 18 + TypeScript + Vite**, graphiques Recharts |
+| Factures PDF | **QuestPDF** (déterministe, prêt à imprimer) |
+| Auth | **JWT** (bcrypt pour les mots de passe) |
+| Validation | **FluentValidation** |
+| Logs | **Serilog** (structuré) |
+| Tests | **xUnit** + EF InMemory (unitaires) + **Testcontainers** (intégration) |
+| Déploiement | **Docker Compose** (db + api + web) |
+
+## Démarrage rapide (Docker)
 
 ```bash
-# 1. Installer les dépendances
+cp .env.example .env          # ajustez le secret JWT pour la production
+docker compose up --build
+```
+
+- Frontend : http://localhost:8080
+- API + Swagger : http://localhost:5080/swagger
+- Connexion démo : **admin@demo.com** / **admin123** — établissement **demo**
+
+La base est migrée, la contrainte anti-double-booking installée et un établissement de démonstration créé automatiquement au premier démarrage.
+
+## Piliers de robustesse
+
+### 1. Multi-tenant dès la conception
+Chaque entité opérationnelle porte un `TenantId`. Un **filtre de requête global EF Core** (`AppDbContext`) contraint automatiquement *toute* lecture/écriture au tenant courant — impossible de lire les données d'un autre établissement. Le tenant est résolu par middleware depuis le claim JWT.
+
+### 2. Jamais de double-réservation
+Trois niveaux de protection :
+1. Validation applicative (chevauchement de dates).
+2. Transaction EF au check-in.
+3. **Contrainte PostgreSQL `EXCLUDE USING gist`** sur `(room_id, daterange(check_in, check_out))` — garantie au niveau base, même si deux réceptionnistes valident exactement au même instant. La violation `23P01` est traduite en `409 Conflict`.
+
+### 3. Concurrence optimiste
+Jeton de concurrence **`xmin`** (PostgreSQL) sur les entités : deux modifications simultanées de la même ligne lèvent une `DbUpdateConcurrencyException` au lieu d'un écrasement silencieux.
+
+### 4. Licences / activation
+Chaque tenant a une `License` (plan, limites, date d'expiration). Une connexion à un établissement sans licence valide est refusée (`402`).
+
+### 5. Affichage en chambre découplé
+`IDisplayProvider` isole le matériel. Implémentation par défaut **LG Pro:Centric/SuperSign** (REST JSON + repli HTNG XML) ; `none` pour les sites sans écrans compatibles. Brancher une autre marque = une nouvelle implémentation, **sans toucher au cœur métier**.
+
+## Modules commerciaux & conformité Algérie
+
+- **Formules de pension** (logement seul / petit-déjeuner / demi-pension / pension complète) attachées à la réservation, avec supplément par personne / nuit configurable — la fonctionnalité signature pilotable depuis la TV.
+- **Paiements** : acomptes + soldes multiples, modes espèces / CIB / Edahabia / virement / chèque, suivi du **solde dû** par réservation (folio distinct de la facture).
+- **Caisse** : ouverture avec fond, clôture avec montant compté et **calcul de l'écart** (clôture de caisse réceptionniste).
+- **Conformité DGI** : mentions légales obligatoires sur la facture (**NIF, NIS, RC, Article d'imposition**), **droit de timbre** sur les paiements en espèces (1 DA / tranche de 100 DA, minimum configurable).
+- **Fiche de police / registre des étrangers** générée en PDF depuis la fiche client + **main courante** (journal arrivées/départs).
+- **Extras / POS** : mini-bar, restaurant, room service, blanchisserie… ajoutés à la note et reportés sur la facture finale.
+- **Housekeeping** : tableau des chambres, assignation aux gouvernantes, statuts propre / sale / en cours / inspecté.
+- **Tarifs saisonniers** : périodes haute/basse saison par type de chambre (priorité), appliquées automatiquement au calcul du séjour.
+- **Rapports exportables** : réservations et CA en **CSV**.
+- **Notifications** : abstraction `INotificationProvider` (SMS/email) — comme l'affichage TV, prête à brancher une passerelle.
+
+## Architecture
+
+```
+backend/
+  src/
+    Pms.Domain/          # Entités, enums, règles métier (zéro dépendance framework)
+    Pms.Application/     # DTOs, services, validators, interfaces (IDisplayProvider…)
+    Pms.Infrastructure/  # EF Core, multi-tenant, JWT, QuestPDF, provider LG, seed
+    Pms.Api/             # Contrôleurs, middlewares, auth, Swagger
+  tests/
+    Pms.UnitTests/         # Réservations, factures, isolation tenant (EF InMemory)
+    Pms.IntegrationTests/  # Flux check-in + contrainte EXCLUDE (Testcontainers)
+frontend/                  # React + TS + Vite
+docker-compose.yml
+```
+
+## Développement local (sans Docker pour le code)
+
+Backend :
+```bash
+cd backend
+dotnet run --project src/Pms.Api        # http://localhost:5080
+dotnet test                              # tous les tests
+```
+> Nécessite le SDK .NET 9 et un PostgreSQL accessible (cf. `ConnectionStrings:Default`).
+
+Frontend :
+```bash
+cd frontend
 npm install
-
-# 2. Configurer la base de données
-cp .env.example .env
-# Éditer .env avec vos identifiants PostgreSQL
-
-# 3. Créer la base de données et les tables
-psql -U postgres -c "CREATE DATABASE pms_hotel;"
-psql -U postgres -d pms_hotel -f src/config/schema.sql
-
-# 4. Lancer le serveur
-npm start
-# ou en mode développement (auto-reload)
-npm run dev
+npm run dev                              # http://localhost:5173 (proxy /api -> :5080)
 ```
 
-Le serveur démarre sur `http://localhost:3000`.
-
-## Endpoints API
-
-| Méthode | URL | Description |
-|---------|-----|-------------|
-| GET | `/api/health` | Health check |
-| GET | `/api/rooms` | Liste des chambres |
-| POST | `/api/rooms` | Créer une chambre |
-| PATCH | `/api/rooms/:id/status` | Modifier le statut d'une chambre |
-| GET | `/api/guests` | Liste des clients |
-| POST | `/api/guests` | Créer un client |
-| GET | `/api/reservations` | Liste des réservations |
-| POST | `/api/reservations` | Créer une réservation |
-| POST | `/api/checkin/:reservationId` | Check-in d'une réservation |
-| GET | `/api/iptv/room/:roomNumber` | Info client pour le portail TV (Pull) |
-
-## Tester le flux complet : Check-in → Notification IPTV
-
-### 1. Vérifier que le serveur fonctionne
+## Migrations EF Core
 
 ```bash
-curl http://localhost:3000/api/health
+cd backend
+dotnet ef migrations add <Nom> --project src/Pms.Infrastructure --startup-project src/Pms.Api -o Persistence/Migrations
 ```
+Les migrations sont appliquées automatiquement au démarrage (`DbInitializer`).
 
-### 2. Consulter les réservations existantes (données seed)
+## Principaux endpoints
 
-```bash
-curl http://localhost:3000/api/reservations
-```
+| Méthode | Route | Rôle |
+|---------|-------|------|
+| POST | `/api/auth/login` | Connexion (JWT) |
+| GET | `/api/stats/dashboard` | KPIs + séries pour graphiques |
+| GET/POST/PUT/DELETE | `/api/rooms` | Chambres |
+| GET/POST/PUT/DELETE | `/api/guests` | Clients |
+| GET/POST/PUT | `/api/reservations` | Réservations |
+| POST | `/api/reservations/availability` | Chambres disponibles sur une période |
+| POST | `/api/checkin/{id}` | Check-in (statut + chambre + IPTV + facture) |
+| POST | `/api/checkout/{id}` | Check-out |
+| GET | `/api/invoices`, `/api/invoices/{id}/pdf` | Factures + PDF |
+| GET/POST/PUT/DELETE | `/api/staff`, `/api/staff/schedules` | Personnel & plannings |
 
-Vous verrez deux réservations pré-configurées (ID 1 et 2).
-
-### 3. Effectuer un check-in
-
-```bash
-curl -X POST http://localhost:3000/api/checkin/1
-```
-
-Réponse attendue :
-```json
-{
-  "message": "Check-in successful",
-  "reservation": {
-    "id": 1,
-    "guest": "Jean Dupont",
-    "room": "101",
-    "check_out": "2026-03-30",
-    "status": "checked_in"
-  },
-  "iptv_notified": false
-}
-```
-
-> `iptv_notified` sera `false` si le middleware Pro:Centric n'est pas en cours d'exécution. Le check-in reste valide, et l'erreur est tracée dans `audit_logs`.
-
-### 4. Vérifier le statut de la chambre (doit être "occupied")
-
-```bash
-curl http://localhost:3000/api/rooms
-```
-
-### 5. Endpoint Pull IPTV — le portail TV récupère les infos client
-
-```bash
-curl http://localhost:3000/api/iptv/room/101
-```
-
-Réponse :
-```json
-{
-  "room_number": "101",
-  "guest_name": "Jean Dupont",
-  "language": "fr",
-  "check_out_date": "2026-03-30"
-}
-```
-
-## Intégration Pro:Centric
-
-Le service `procentricService.js` envoie les données du client au middleware LG lors du check-in. Deux méthodes sont implémentées :
-
-1. **JSON/REST** — envoi `POST` avec payload JSON (méthode par défaut)
-2. **XML/HTNG** — envoi `POST` avec payload XML au standard HTNG (fallback)
-
-Le payload envoyé contient : `guest_name`, `room_number`, `check_out_date`, `language`.
-
-Configurer l'URL du middleware dans `.env` :
-```
-PROCENTRIC_URL=http://localhost:8080/procentric/api
-```
-
-## Audit
-
-Chaque action de check-in et chaque tentative de notification IPTV (succès ou échec) est enregistrée dans la table `audit_logs`.
-
-## Structure du projet
-
-```
-src/
-├── config/
-│   ├── db.js              # Pool de connexions PostgreSQL
-│   └── schema.sql         # Schéma SQL + données de test
-├── controllers/
-│   ├── checkinController.js
-│   ├── guestController.js
-│   ├── iptvController.js
-│   ├── reservationController.js
-│   └── roomController.js
-├── integrations/
-│   └── procentric/
-│       └── procentricService.js  # Service JSON + XML
-├── models/
-│   ├── AuditLog.js
-│   ├── Guest.js
-│   ├── Reservation.js
-│   └── Room.js
-├── routes/
-│   ├── checkin.js
-│   ├── guests.js
-│   ├── iptv.js
-│   ├── reservations.js
-│   └── rooms.js
-├── app.js                 # Configuration Express
-└── server.js              # Point d'entrée
-```
+## Sécurité production (checklist)
+- [ ] Remplacer `JWT_SECRET` par une valeur aléatoire ≥ 32 caractères.
+- [ ] Mots de passe forts, désactiver le compte démo.
+- [ ] HTTPS / reverse-proxy devant `web` et `api`.
+- [ ] Sauvegardes automatiques du volume PostgreSQL (`pms-db-data`).

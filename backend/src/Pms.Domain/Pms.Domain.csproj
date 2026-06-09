@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Domain layer: pure business entities, value objects, enums and domain rules.
+       No dependencies on infrastructure or frameworks. -->
+</Project>
